@@ -12,6 +12,7 @@
 #include <regex>
 #include <vector>
 #include <algorithm>
+#include <assert.h>
 
 //---------------------------------------------------------------------------
 using namespace std;
@@ -185,17 +186,16 @@ void parser(std::string query) {
   
   /* extract tokens from main parts */
   
+  map<string, string> attribute_to_alias; // maps an attribute to its aliased relation
+  
   // select
   auto selected_attributes = split(select, "\\w+");  // list of attributes
   
   // from
-  std::vector<std::vector<std::string>> relations;  // first element := relation; second element := alias
+  map<string, string> alias_to_relation;  // maps an alias to its relation
   auto tokens = split(from, "\\w+");
   for (unsigned i=0; i<tokens.size(); i+=2) {
-    std::vector<std::string> relation_alias;
-    relation_alias.push_back(tokens[i]);
-    relation_alias.push_back(tokens[i+1]);
-    relations.push_back(relation_alias);
+    alias_to_relation[tokens[i+1]] = tokens[i];
   }
   
   // where
@@ -207,16 +207,31 @@ void parser(std::string query) {
     std::vector<std::string> binding;
     
     binding.push_back(split(tokens[i], "\\w+")[1]);
+    attribute_to_alias[split(tokens[i], "\\w+")[1]] = split(tokens[i], "\\w+")[0];
     
     if (tokens[i+1].find(".")!=std::string::npos) {
       // attribute binding
+      attribute_to_alias[split(tokens[i+1], "\\w+")[1]] = split(tokens[i+1], "\\w+")[0];
       binding.push_back(split(tokens[i+1], "\\w+")[1]);
       attribute_bindings.push_back(binding);
     } else {
-     // constant binding 
+     // constant bin#include <assert>ding 
       binding.push_back(tokens[i+1]);
       constant_bindings.push_back(binding);
     }
+  }
+  
+  // check if relations and attributes exist
+  Database db;
+  db.open("data/uni");
+  
+  for (auto& it : alias_to_relation) {
+      assert(db.hasTable(it.second));  // make sure relations exist
+  }
+  
+  for (auto& it : attribute_to_alias) {
+      auto table = db.getTable(it.second);
+      assert(table.findAttribute(it.first) > -1);  // make sure attributes exist
   }
 }
 

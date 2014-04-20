@@ -83,4 +83,5 @@ bin/examples/exercise01.o: examples/exercise01.cpp src/Database.hpp \
   /usr/include/x86_64-linux-gnu/bits/mathcalls.h \
   src/operator/Printer.hpp src/operator/Chi.hpp \
   src/operator/HashJoin.hpp /usr/include/c++/v1/unordered_map \
-  /usr/include/c++/v1/regex /usr/include/c++/v1/deque
+  /usr/include/c++/v1/regex /usr/include/c++/v1/deque \
+  /usr/include/assert.h
