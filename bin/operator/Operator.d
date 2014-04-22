@@ -1,33 +1,46 @@
 bin/operator/Operator.o: src/operator/Operator.cpp \
-  src/operator/Operator.hpp /usr/include/c++/v1/vector \
-  /usr/include/c++/v1/__config /usr/include/features.h \
-  /usr/include/stdc-predef.h \
-  /usr/include/x86_64-linux-gnu/bits/predefs.h \
-  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
-  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
-  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
-  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
-  /usr/include/c++/v1/__bit_reference /usr/include/c++/v1/algorithm \
-  /usr/include/c++/v1/initializer_list /usr/include/c++/v1/cstddef \
-  /usr/include/clang/3.4/include/stddef.h \
-  /usr/include/c++/v1/type_traits /usr/include/c++/v1/cstring \
-  /usr/include/string.h /usr/include/xlocale.h \
-  /usr/include/c++/v1/utility /usr/include/c++/v1/__tuple \
-  /usr/include/c++/v1/memory /usr/include/c++/v1/typeinfo \
-  /usr/include/c++/v1/exception /usr/include/c++/v1/cstdint \
-  /usr/include/clang/3.4/include/stdint.h /usr/include/stdint.h \
-  /usr/include/x86_64-linux-gnu/bits/wchar.h /usr/include/c++/v1/new \
-  /usr/include/c++/v1/limits /usr/include/c++/v1/__undef_min_max \
-  /usr/include/c++/v1/iterator /usr/include/c++/v1/iosfwd \
-  /usr/include/wchar.h /usr/include/stdio.h \
-  /usr/include/clang/3.4/include/stdarg.h \
-  /usr/include/c++/v1/__functional_base /usr/include/c++/v1/tuple \
-  /usr/include/c++/v1/atomic /usr/include/c++/v1/climits \
-  /usr/include/clang/3.4/include/limits.h /usr/include/limits.h \
-  /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
-  /usr/include/x86_64-linux-gnu/bits/local_lim.h \
-  /usr/include/linux/limits.h \
-  /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
-  /usr/include/x86_64-linux-gnu/bits/xopen_lim.h \
-  /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
-  /usr/include/c++/v1/stdexcept /usr/include/c++/v1/__split_buffer
+ /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/bits/predefs.h \
+ src/operator/Operator.hpp /opt/gcc-4.9.0/include/c++/4.9.0/vector \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/stl_algobase.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/x86_64-unknown-linux-gnu/bits/c++config.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/x86_64-unknown-linux-gnu/bits/os_defines.h \
+ /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/x86_64-linux-gnu/bits/wordsize.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/x86_64-unknown-linux-gnu/bits/cpu_defines.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/functexcept.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/exception_defines.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/cpp_type_traits.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/ext/type_traits.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/ext/numeric_traits.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/stl_pair.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/move.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/concept_check.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/type_traits \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/stl_iterator_base_types.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/stl_iterator_base_funcs.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/debug/debug.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/stl_iterator.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/ptr_traits.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/predefined_ops.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/allocator.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/x86_64-unknown-linux-gnu/bits/c++allocator.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/ext/new_allocator.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/new \
+ /opt/gcc-4.9.0/include/c++/4.9.0/exception \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/atomic_lockfree_defines.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/exception_ptr.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/nested_exception.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/memoryfwd.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/stl_construct.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/ext/alloc_traits.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/alloc_traits.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/stl_uninitialized.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/stl_vector.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/initializer_list \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/stl_bvector.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/functional_hash.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/hash_bytes.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/range_access.h \
+ /opt/gcc-4.9.0/include/c++/4.9.0/bits/vector.tcc

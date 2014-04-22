@@ -177,7 +177,7 @@ void parser(std::string query) {
   std::regex rx_sql( "select (\\*|\\w+(?:,\\w+)*) from (\\w+ \\w+(?:,\\w+ \\w+)*) where (\\w+\\.\\w+=(?:\\w+\\.\\w+|\\w+)(?: and \\w+\\.\\w+=(?:\\w+\\.\\w+|\\w+))*)",
 			std::regex_constants::ECMAScript | std::regex_constants::icase);
   std::smatch matches;
-  regex_search(query, matches, rx_sql,  regex_constants::match_flag_type::match_continuous);
+  assert(regex_search(query, matches, rx_sql,  regex_constants::match_flag_type::match_continuous));
   
   // extract main parts of the sql query
   std::string select = matches[1];
@@ -202,7 +202,7 @@ void parser(std::string query) {
   std::vector<std::vector<std::string>> attribute_bindings;  // first element := attribute; second element := attribute
   std::vector<std::vector<std::string>> constant_bindings;  // first element := attribute; constant
   
-  tokens = split(where, "[\\w.]+");
+  tokens = split(where, "(\\w|\\.)+");
   for (unsigned i=0; i<tokens.size(); i+=3) {
     std::vector<std::string> binding;
     
@@ -230,15 +230,17 @@ void parser(std::string query) {
   }
   
   for (auto& it : attribute_to_alias) {
-      auto table = db.getTable(it.second);
+      auto table = db.getTable(alias_to_relation[it.second]);
       assert(table.findAttribute(it.first) > -1);  // make sure attributes exist
   }
+  
+  cout << endl << "***** sucessfully parsed the following query: *****" << endl << query;
 }
 
 int main() {
   task1();
   task2();
-  parser("select aa,b,c,d,e,f from a b,c d where a.b=dee and c.d=e.d");
+  parser("SELECT matrnr,name from studenten s,hoeren h where s.matrnr=h.matrnr and s.name=2");
 }
 
 //---------------------------------------------------------------------------

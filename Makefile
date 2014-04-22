@@ -1,9 +1,9 @@
 DEPTRACKING=-MD -MF $(@:.o=.d)
-# CXXFLAGS:=-g -std=c++11 -Wall -Wextra -Isrc
-# BUILDEXE=g++ -o$@ $(CXXFLAGS) $(LDFLAGS) $^
+CXXFLAGS:=-g -std=c++11 -Wall -Wextra -Isrc
+BUILDEXE=g++ -o$@ $(CXXFLAGS) $(LDFLAGS) $^
 
-CXXFLAGS:=-g -stdlib=libc++ -std=c++11 -Wall -Wextra -Isrc
-BUILDEXE=clang++ -o$@ $(CXXFLAGS) $(LDFLAGS) $^
+#CXXFLAGS:=-g -stdlib=libc++ -std=c++11 -Wall -Wextra -Isrc
+#BUILDEXE=clang++ -o$@ $(CXXFLAGS) $(LDFLAGS) $^
 
 CHECKDIR=@mkdir -p $(dir $@)
 EXEEXT:=
@@ -17,11 +17,11 @@ include examples/LocalMakefile
 
 bin/%.o: src/%.cpp
 	$(CHECKDIR)
-	clang++ -o$@ -c $(CXXFLAGS) $(DEPTRACKING) $<
+	g++ -o$@ -c $(CXXFLAGS) $(DEPTRACKING) $<
 
 bin/examples/%.o: examples/%.cpp
 	$(CHECKDIR)
-	clang++ -o$@ -c $(CXXFLAGS) $(DEPTRACKING) $<
+	g++ -o$@ -c $(CXXFLAGS) $(DEPTRACKING) $<
 
 clean:
 	find bin -name '*.d' -delete -o -name '*.o' -delete -o '(' -perm -u=x '!' -type d ')' -delete
