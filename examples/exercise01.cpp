@@ -13,8 +13,9 @@
 #include <vector>
 #include <algorithm>
 #include <assert.h>
+#include <boost/algorithm/string.hpp>
 
-//---------------------------------------------------------------------------
+using namespace boost;
 using namespace std;
 //---------------------------------------------------------------------------
 void task1()
@@ -136,14 +137,14 @@ enum TOKENS {
 };
 class Token {
  public:
-   std::string value;
-   std::regex reg;
+   string value;
+   regex reg;
    TOKENS type; 
-   Token(std::string reg, TOKENS type) : reg( std::regex("$(" + reg + ")", std::regex_constants::ECMAScript | std::regex_constants::icase)), type(type) {};
+   Token(string reg, TOKENS type) : reg( regex("$(" + reg + ")", regex_constants::ECMAScript | regex_constants::icase)), type(type) {};
 };
 
-std::vector<Token> lexer(std::string query) {  
-  std::vector<Token> tokens;
+vector<Token> lexer(string query) {  
+  vector<Token> tokens;
    tokens.push_back(Token("[a-zA-Z0-9]+", STRING));
    tokens.push_back(Token("\\,", COMMA));
    tokens.push_back(Token("\\,", DOT));
@@ -154,11 +155,11 @@ std::vector<Token> lexer(std::string query) {
 }
 */
 
-std::vector<std::string> split(std::string str, std::string match) {
+vector<string> split_match(string str, string match) {
   // extract regex tokens from a string
-  std::regex rx_match("(" + match + ")", std::regex_constants::ECMAScript | std::regex_constants::icase);
-  std::smatch matches;
-  std::vector<std::string> splits;
+  regex rx_match("(" + match + ")", regex_constants::ECMAScript | regex_constants::icase);
+  smatch matches;
+  vector<string> splits;
   
   while (str != "") {
     regex_search(str, matches, rx_match,  regex_constants::match_flag_type::match_continuous);
@@ -172,47 +173,47 @@ std::vector<std::string> split(std::string str, std::string match) {
   return splits;
 }
 
-void parser(std::string query) {
+void parser(string query) {
   // regex definitions
-  std::regex rx_sql( "select (\\*|\\w+(?:,\\w+)*) from (\\w+ \\w+(?:,\\w+ \\w+)*) where (\\w+\\.\\w+=(?:\\w+\\.\\w+|\\w+)(?: and \\w+\\.\\w+=(?:\\w+\\.\\w+|\\w+))*)",
-			std::regex_constants::ECMAScript | std::regex_constants::icase);
-  std::smatch matches;
+  regex rx_sql( "select (\\*|\\w+(?:,\\w+)*) from (\\w+ \\w+(?:,\\w+ \\w+)*) where (\\w+\\.\\w+=(?:\\w+\\.\\w+|\\w+)(?: and \\w+\\.\\w+=(?:\\w+\\.\\w+|\\w+))*)",
+			regex_constants::ECMAScript | regex_constants::icase);
+  smatch matches;
   assert(regex_search(query, matches, rx_sql,  regex_constants::match_flag_type::match_continuous));
   
   // extract main parts of the sql query
-  std::string select = matches[1];
-  std::string from = matches[2];
-  std::string where = matches[3];
+  string select = matches[1];
+  string from = matches[2];
+  string where = matches[3];
   
   /* extract tokens from main parts */
   
   map<string, string> attribute_to_alias; // maps an attribute to its aliased relation
   
   // select
-  auto selected_attributes = split(select, "\\w+");  // list of attributes
+  auto selected_attributes = split_match(select, "\\w+");  // list of attributes
   
   // from
   map<string, string> alias_to_relation;  // maps an alias to its relation
-  auto tokens = split(from, "\\w+");
+  auto tokens = split_match(from, "\\w+");
   for (unsigned i=0; i<tokens.size(); i+=2) {
     alias_to_relation[tokens[i+1]] = tokens[i];
   }
   
   // where
-  std::vector<std::vector<std::string>> attribute_bindings;  // first element := attribute; second element := attribute
-  std::vector<std::vector<std::string>> constant_bindings;  // first element := attribute; constant
+  vector<vector<string>> attribute_bindings;  // first element := attribute; second element := attribute
+  vector<vector<string>> constant_bindings;  // first element := attribute; constant
   
-  tokens = split(where, "(\\w|\\.)+");
+  tokens = split_match(where, "(\\w|\\.)+");
   for (unsigned i=0; i<tokens.size(); i+=3) {
-    std::vector<std::string> binding;
+    vector<string> binding;
     
-    binding.push_back(split(tokens[i], "\\w+")[1]);
-    attribute_to_alias[split(tokens[i], "\\w+")[1]] = split(tokens[i], "\\w+")[0];
+    binding.push_back(split_match(tokens[i], "\\w+")[1]);
+    attribute_to_alias[split_match(tokens[i], "\\w+")[1]] = split_match(tokens[i], "\\w+")[0];
     
-    if (tokens[i+1].find(".")!=std::string::npos) {
+    if (tokens[i+1].find(".")!=string::npos) {
       // attribute binding
-      attribute_to_alias[split(tokens[i+1], "\\w+")[1]] = split(tokens[i+1], "\\w+")[0];
-      binding.push_back(split(tokens[i+1], "\\w+")[1]);
+      attribute_to_alias[split_match(tokens[i+1], "\\w+")[1]] = split_match(tokens[i+1], "\\w+")[0];
+      binding.push_back(split_match(tokens[i+1], "\\w+")[1]);
       attribute_bindings.push_back(binding);
     } else {
      // constant bin#include <assert>ding 
@@ -234,13 +235,13 @@ void parser(std::string query) {
       assert(table.findAttribute(it.first) > -1);  // make sure attributes exist
   }
   
-  cout << endl << "***** sucessfully parsed the following query: *****" << endl << query;
+  cout << endl << "***** sucessfully parsed the following query: *****" << endl << query << endl;
 }
 
 int main() {
   task1();
   task2();
-  parser("SELECT matrnr,name from studenten s,hoeren h where s.matrnr=h.matrnr and s.name=2");
+  parser(string("SELECT matrnr,name from studenten s,hoeren h where s.matrnr=h.matrnr and s.name=2"));
 }
 
 //---------------------------------------------------------------------------

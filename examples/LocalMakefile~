@@ -1,0 +1,18 @@
+bin/scanexample$(EXEEXT): bin/examples/ScanExample.o $(obj)
+	$(BUILDEXE)
+
+bin/selectexample$(EXEEXT): bin/examples/SelectExample.o $(obj)
+	$(BUILDEXE)
+
+bin/joinexample$(EXEEXT): bin/examples/JoinExample.o $(obj)
+	$(BUILDEXE)
+	
+bin/chiexample$(EXEEXT): bin/examples/ChiExample.o $(obj)
+	$(BUILDEXE)
+
+bin/exercise01$(EXEEXT): bin/examples/exercise01.o $(obj)
+	$(BUILDEXE)
+
+
+# Alias for all examples
+examples_bin: bin/scanexample$(EXEEXT) bin/selectexample$(EXEEXT) bin/joinexample$(EXEEXT) bin/chiexample$(EXEEXT) bin/exercise01$(EXEEXT)

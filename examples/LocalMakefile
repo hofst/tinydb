@@ -13,6 +13,9 @@ bin/chiexample$(EXEEXT): bin/examples/ChiExample.o $(obj)
 bin/exercise01$(EXEEXT): bin/examples/exercise01.o $(obj)
 	$(BUILDEXE)
 
+bin/exercise03$(EXEEXT): bin/examples/exercise03.o $(obj)
+	$(BUILDEXE)
+
 
 # Alias for all examples
-examples_bin: bin/scanexample$(EXEEXT) bin/selectexample$(EXEEXT) bin/joinexample$(EXEEXT) bin/chiexample$(EXEEXT) bin/exercise01$(EXEEXT)
+examples_bin: bin/scanexample$(EXEEXT) bin/selectexample$(EXEEXT) bin/joinexample$(EXEEXT) bin/chiexample$(EXEEXT) bin/exercise01$(EXEEXT) bin/exercise03$(EXEEXT)
