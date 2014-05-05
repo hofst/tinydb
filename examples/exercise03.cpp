@@ -93,10 +93,23 @@ struct Parser_Result {
     relations.insert(relation);
     alias_to_relation[alias] = relation;
   }
+  
+  void add_attr_binding(Attr_Binding attr_binding) {
+   attributes.insert(attr_binding.attr1);
+   attributes.insert(attr_binding.attr2);
+   attr_bindings.push_back(attr_binding); 
+  }
+  
+  void add_constant_binding(Constant_Binding constant_binding) {
+   attributes.insert(constant_binding.attr);
+   constant_bindings.push_back(constant_binding); 
+  }
 };
 
 void extract_selected_attributes(string& select_clause, Parser_Result& result) {
   /* Extracts a list of attributes from the select_clause */
+  if (select_clause == "*") return;
+  
   auto aliases_with_attribute = split_match(select_clause, "(\\w|\\.)+");  // list of alias.attribute
   
   cout << "Selected attributes: ";
@@ -133,11 +146,11 @@ void extract_bindings(string& where_clause, Parser_Result& result) {
       // attribute binding
       auto attr2 = Attr(tokens[i+1]);
       cout << attr2.str() << ", ";
-      result.attr_bindings.push_back(Attr_Binding(attr1, attr2));
+      result.add_attr_binding(Attr_Binding(attr1, attr2));
     } else {
      // constant binding
       cout << tokens[i+1];
-      result.constant_bindings.push_back(Constant_Binding(attr1, tokens[i+1]));
+      result.add_constant_binding(Constant_Binding(attr1, tokens[i+1]));
     }
   }
   cout << endl;
@@ -183,8 +196,77 @@ Parser_Result parser(string query) {
   return result;
 }
 
+void run_query(Parser_Result parser_result) {
+  /* Run a query in form of Parser_Result on tinydb */
+  
+  cout << endl << "***** Running Query: *****" << endl;
+  
+  // Open Database
+  Database db;
+  db.open("data/uni");
+  
+  // Create TableScans
+  map<string, unique_ptr<Tablescan>> alias_to_tables;
+  for (string alias : parser_result.aliases) {
+    Table& table = db.getTable(parser_result.alias_to_relation[alias]);
+    unique_ptr<Tablescan> scan_table(new Tablescan(table));
+    alias_to_tables[alias] = move(scan_table);
+  }
+  
+  // Create Registers
+  map<Attr, const Register*> attr_to_register;
+  for (Attr attr : parser_result.attributes) {
+    const Register* reg = alias_to_tables[attr.alias]->getOutput(attr.name);
+    attr_to_register[attr] = reg;
+  }
+  
+  // Constant Bindings
+  map<string, unique_ptr<Operator>> alias_to_filtered_tables;  // basically convert from Tablescan-map to Operator-map
+  for (auto& alias_table : alias_to_tables) {
+    alias_to_filtered_tables[alias_table.first] = move(alias_table.second);
+  }
+  
+  /*
+  for (auto& binding : parser_result.constant_bindings) {
+    Register equal_register; equal_register.setString(binding.constant);
+    unique_ptr<Chi> filter(new Chi(move(alias_to_filtered_tables[binding.attr.alias]),Chi::Equal,attr_to_register[binding.attr],&equal_register));
+    const Register* filtered_register=filter->getResult();
+    unique_ptr<Selection> filtered_result(new Selection(move(filter),filtered_register));
+    alias_to_filtered_tables[binding.attr.alias] = move(filtered_result);
+  }
+  */
+  
+  // Canonical CrossProduct
+  unique_ptr<Operator> result;
+  for (auto& alias_table : alias_to_filtered_tables) {
+    if (!result) {
+     result = move(alias_table.second);  // initialize
+    } else {
+     unique_ptr<Operator> tmp(new CrossProduct(move(alias_table.second), move(result)));
+     result = move(tmp);
+    }
+  }
+  
+  // Canonical Selection
+  
+  
+  // Projections
+  vector<const Register*> selected_registers;
+  for (auto attr : parser_result.selected_attributes) {
+      selected_registers.push_back(attr_to_register[attr]);
+  }
+  Printer out (move(result), selected_registers);
+  
+  // Print Result
+  out.open();
+  while (out.next());
+  out.close();
+}
+
 int main() {
-  parser(string("SELECT s.matrnr,s.name from studenten s,hoeren h where s.matrnr=h.matrnr and s.name=Jonas"));
+  cout << "***** Starting Parser *****" << endl;
+  auto parser_result = parser(string("SELECT s.matrnr,s.name from studenten s,hoeren h where s.matrnr=h.matrnr and s.name=Jonas"));
+  run_query(parser_result);
 }
 
 //---------------------------------------------------------------------------

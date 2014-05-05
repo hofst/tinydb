@@ -1,5 +1,5 @@
 DEPTRACKING=-MD -MF $(@:.o=.d)
-CXXFLAGS:=-g -std=c++11 -Wall -Wextra -Isrc
+CXXFLAGS:=-g -std=c++14 -Wall -Wextra -Isrc
 BUILDEXE=g++ -o$@ $(CXXFLAGS) $(LDFLAGS) $^
 
 #CXXFLAGS:=-g -stdlib=libc++ -std=c++11 -Wall -Wextra -Isrc

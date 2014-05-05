@@ -14,6 +14,9 @@ Printer::Printer(unique_ptr<Operator>&& input,const vector<const Register*>& toP
    : input(move(input)),toPrint(toPrint)
    // Constructor
 {
+  if (toPrint.size() == 0) {
+    this->toPrint = this->input->getOutput();
+  }
 }
 //---------------------------------------------------------------------------
 void Printer::open()
