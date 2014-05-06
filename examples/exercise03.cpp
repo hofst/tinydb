@@ -59,15 +59,15 @@ struct Attr {
 };
 
 struct Constant_Binding {
-  Attr& attr;
+  Attr attr;
   string constant;
   
   Constant_Binding(Attr attr, string constant) : attr(attr), constant(constant) {};
 };
 
 struct Attr_Binding {
-  Attr& attr1;
-  Attr& attr2;
+  Attr attr1;
+  Attr attr2;
   
   Attr_Binding(Attr attr1, Attr attr2) : attr1(attr1), attr2(attr2) {};
 };
@@ -208,16 +208,13 @@ void run_query(Parser_Result parser_result) {
   // Create TableScans
   map<string, unique_ptr<Tablescan>> alias_to_tables;
   for (string alias : parser_result.aliases) {
-    Table& table = db.getTable(parser_result.alias_to_relation[alias]);
-    unique_ptr<Tablescan> scan_table(new Tablescan(table));
-    alias_to_tables[alias] = move(scan_table);
+    alias_to_tables[alias] = unique_ptr<Tablescan> (new Tablescan(db.getTable(parser_result.alias_to_relation[alias])));
   }
   
   // Create Registers
   map<Attr, const Register*> attr_to_register;
   for (Attr attr : parser_result.attributes) {
-    const Register* reg = alias_to_tables[attr.alias]->getOutput(attr.name);
-    attr_to_register[attr] = reg;
+    attr_to_register[attr] = alias_to_tables[attr.alias]->getOutput(attr.name);
   }
   
   // Constant Bindings
@@ -226,15 +223,13 @@ void run_query(Parser_Result parser_result) {
     alias_to_filtered_tables[alias_table.first] = move(alias_table.second);
   }
   
-  /*
+  map<string, Register> equal_constant_registers;
   for (auto& binding : parser_result.constant_bindings) {
-    Register equal_register; equal_register.setString(binding.constant);
-    unique_ptr<Chi> filter(new Chi(move(alias_to_filtered_tables[binding.attr.alias]),Chi::Equal,attr_to_register[binding.attr],&equal_register));
+    equal_constant_registers[binding.constant] = Register(binding.constant);
+    unique_ptr<Chi> filter(new Chi(move(alias_to_filtered_tables[binding.attr.alias]),Chi::Equal,attr_to_register[binding.attr],&equal_constant_registers[binding.constant]));
     const Register* filtered_register=filter->getResult();
-    unique_ptr<Selection> filtered_result(new Selection(move(filter),filtered_register));
-    alias_to_filtered_tables[binding.attr.alias] = move(filtered_result);
+    alias_to_filtered_tables[binding.attr.alias] = unique_ptr<Selection> (new Selection(move(filter),filtered_register));  
   }
-  */
   
   // Canonical CrossProduct
   unique_ptr<Operator> result;
@@ -247,7 +242,12 @@ void run_query(Parser_Result parser_result) {
     }
   }
   
-  // Canonical Selection
+  // Canonical Selection (join bindings)
+  for (auto& binding : parser_result.attr_bindings) {
+    unique_ptr<Chi> filter(new Chi(move(result),Chi::Equal,attr_to_register[binding.attr1],attr_to_register[binding.attr2]));
+    const Register* filtered_register=filter->getResult();
+    result = move(unique_ptr<Selection> (new Selection(move(filter),filtered_register)));  
+  }
   
   
   // Projections
@@ -265,7 +265,7 @@ void run_query(Parser_Result parser_result) {
 
 int main() {
   cout << "***** Starting Parser *****" << endl;
-  auto parser_result = parser(string("SELECT s.matrnr,s.name from studenten s,hoeren h where s.matrnr=h.matrnr and s.name=Jonas"));
+  auto parser_result = parser(string("SELECT s.matrnr,s.name,v.titel from studenten s,hoeren h,vorlesungen v where s.matrnr=h.matrnr and h.vorlnr=v.vorlnr and s.name=Schopenhauer"));
   run_query(parser_result);
 }
 

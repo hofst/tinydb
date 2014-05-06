@@ -21,6 +21,7 @@ class Register
    public:
    /// Constructor
    Register();
+   Register(const std::string& value);
    /// Destructor
    ~Register();
 

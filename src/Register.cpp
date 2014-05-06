@@ -5,6 +5,12 @@ Register::Register()
    // Constructor
 {
 }
+Register::Register(const std::string& value)
+   : state(State::String)
+   // Constructor
+{
+  stringValue=value;
+}
 //---------------------------------------------------------------------------
 Register::~Register()
 {
