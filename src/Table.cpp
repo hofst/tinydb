@@ -278,4 +278,10 @@ int Table::findAttribute(const string& name)
          return index;
    return -1;
 }
+
+const Attribute& Table::getAttribute(const string& name)
+   // Search for a specific attribute
+{
+   return getAttribute(findAttribute(name));
+}
 //---------------------------------------------------------------------------

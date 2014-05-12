@@ -63,6 +63,11 @@ struct Constant_Binding {
   string constant;
   
   Constant_Binding(Attr attr, string constant) : attr(attr), constant(constant) {};
+  
+  bool operator<(const Constant_Binding& other) const
+  {
+    return (attr.alias + attr.name + constant) < (other.attr.alias + other.attr.name + other.constant);
+  }
 };
 
 struct Attr_Binding {
@@ -70,6 +75,27 @@ struct Attr_Binding {
   Attr attr2;
   
   Attr_Binding(Attr attr1, Attr attr2) : attr1(attr1), attr2(attr2) {};
+  
+  bool operator<(const Attr_Binding& other) const
+  {
+    return (attr1.alias + attr1.name + attr2.alias + attr2.name) < (other.attr1.alias + other.attr1.name + other.attr2.alias + other.attr2.name);
+  }
+  
+  string str() {
+    return attr1.str() + "=" + attr2.str(); 
+  }
+};
+
+struct Relation_Binding {
+  string r1;
+  string r2;
+  
+  Relation_Binding(string r1, string r2) : r1(r1), r2(r2) {};
+  
+  bool operator<(const Relation_Binding& other) const
+  {
+    return (r1+r2) < (other.r1+other.r2);
+  }
 };
 
 struct Parser_Result {
@@ -78,8 +104,9 @@ struct Parser_Result {
   set<Attr> attributes;
   set<Attr> selected_attributes;
   map<string, string> alias_to_relation;  // maps an alias to its relation
-  vector<Attr_Binding> attr_bindings;  // list of (attribute; attribute)
-  vector<Constant_Binding> constant_bindings;  // list of (attribute; constant)
+  set<Attr_Binding> attr_bindings;  // list of (attribute; attribute)
+  set<Relation_Binding> relation_bindings;  // list of (relation; relation) for query graph construction
+  set<Constant_Binding> constant_bindings;  // list of (attribute; constant)
   
   Parser_Result() {}
   
@@ -97,12 +124,17 @@ struct Parser_Result {
   void add_attr_binding(Attr_Binding attr_binding) {
    attributes.insert(attr_binding.attr1);
    attributes.insert(attr_binding.attr2);
-   attr_bindings.push_back(attr_binding); 
+   
+   attr_bindings.insert(attr_binding); 
+   attr_bindings.insert(Attr_Binding(attr_binding.attr2, attr_binding.attr1)); // add both directions
+   
+   relation_bindings.insert(move(Relation_Binding(alias_to_relation[attr_binding.attr1.alias], alias_to_relation[attr_binding.attr2.alias]))); 
+   relation_bindings.insert(move(Relation_Binding(alias_to_relation[attr_binding.attr2.alias], alias_to_relation[attr_binding.attr1.alias]))); 
   }
   
   void add_constant_binding(Constant_Binding constant_binding) {
    attributes.insert(constant_binding.attr);
-   constant_bindings.push_back(constant_binding); 
+   constant_bindings.insert(constant_binding); 
   }
 };
 
@@ -263,10 +295,97 @@ void run_query(Parser_Result parser_result) {
   out.close();
 }
 
+void build_query_graph(Parser_Result parser_result) {
+  /* Run a query in form of Parser_Result on tinydb */
+  
+  cout << endl << "***** Building Query Graph: *****" << endl;
+  
+  // Open Database
+  Database db;
+  db.open("data/uni");
+  
+  set<string> nodes = parser_result.relations;
+  set<Relation_Binding> edges = parser_result.relation_bindings;
+  
+  // Output Connected Subgraphs
+  cout << endl << "***** Connected Subgraphs: *****" << endl;
+  set<set<string>> connected_subgraphs;
+  for (auto relation : nodes) {
+    connected_subgraphs.insert({relation}); // initialize subgraphs with single nodes
+  }
+  set<Relation_Binding> passed_edges;
+  for (auto relation_binding : edges) {
+    if (passed_edges.find(relation_binding) != passed_edges.end()) continue;	 // check if edge already processed
+    passed_edges.insert(Relation_Binding(relation_binding.r1, relation_binding.r2));
+    passed_edges.insert(Relation_Binding(relation_binding.r2, relation_binding.r1));
+    
+    // merge subgraphs
+    set<string> subgraph1;
+    set<string> subgraph2;
+    for (auto& subgraph : connected_subgraphs) {
+      if (subgraph.find(relation_binding.r1) != subgraph.end()) {
+	subgraph1 = subgraph;
+      }
+      if (subgraph.find(relation_binding.r2) != subgraph.end()) {
+	subgraph2 = subgraph;
+      }
+    }
+    set<string> merged_graph = subgraph1;
+    merged_graph.insert(subgraph2.begin(), subgraph2.end());
+    connected_subgraphs.insert(move(merged_graph));
+    connected_subgraphs.erase(subgraph2);
+    connected_subgraphs.erase(subgraph1);
+  }
+  
+  for (auto subgraph : connected_subgraphs) {
+    for (auto relation : subgraph) {
+      cout << relation << ", ";
+    }
+    cout << endl;
+  }
+  
+  // Output constant bindings
+  cout << endl << "***** Bindings that can be pushed down and result cardinalities: *****" << endl;
+  for (auto constant_binding : parser_result.constant_bindings) {
+   auto t1 = db.getTable(parser_result.alias_to_relation[constant_binding.attr.alias]); 
+   auto a1 = t1.getAttribute(constant_binding.attr.name); 
+   cout << parser_result.alias_to_relation[constant_binding.attr.alias] << "." << constant_binding.attr.name << "=" << constant_binding.constant << ": ";
+   if (a1.getKey()) {
+     cout << 1.0;  // A Key yields a cardinality of 1 (or 0)
+   } else {
+     cout << 1.0 / a1.getUniqueValues() * t1.getCardinality();  // Selectivity times Cardinality yields Result Cardinality of a Selection
+   }
+   cout << endl;
+  }
+  
+  // Output cardinalities
+  cout << endl << "***** Estimated Selectivities *****" << endl;
+  for (auto attr_binding : parser_result.attr_bindings) {
+    cout << attr_binding.str() << ": ";
+    auto t1 = db.getTable(parser_result.alias_to_relation[attr_binding.attr1.alias]); 
+    auto t2 = db.getTable(parser_result.alias_to_relation[attr_binding.attr2.alias]); 
+    auto a1 = t1.getAttribute(attr_binding.attr1.name); 
+    auto a2 = t1.getAttribute(attr_binding.attr2.name);
+    /* Estimations as in exercise 02 */
+    if (a1.getKey() && a2.getKey()) {
+      cout << 1.0 / max(t1.getCardinality(), t2.getCardinality());
+    } else if (a1.getKey() && !a2.getKey()) {
+      cout << 1.0 / t1.getCardinality();
+    } else if (!a1.getKey() && a2.getKey()) {
+      cout << 1.0 / t2.getCardinality();
+    } else if (!a1.getKey() && !a2.getKey()) {
+      cout << 1.0 / max(a1.getUniqueValues(), a2.getUniqueValues());
+    }
+    cout << endl;
+  }
+  
+}
+
 int main() {
   cout << "***** Starting Parser *****" << endl;
-  auto parser_result = parser(string("SELECT s.matrnr,s.name,v.titel FROM studenten s,hoeren h,vorlesungen v WHERE s.matrnr=h.matrnr AND h.vorlnr=v.vorlnr AND s.name=Schopenhauer"));
-  run_query(parser_result);
+  auto parser_result = parser(string("SELECT s.matrnr,s.name,v.titel FROM studenten s,hoeren h,vorlesungen v,professoren p WHERE s.matrnr=h.matrnr AND h.vorlnr=v.vorlnr AND s.name=Schopenhauer"));
+  //run_query(parser_result);
+  build_query_graph(parser_result);
 }
 
 //---------------------------------------------------------------------------

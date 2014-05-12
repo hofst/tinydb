@@ -60,7 +60,7 @@ class Table
    /// Update the statistics
    void runStats();
 
-   /// The cardinality
+   /// The cardinalitya
    unsigned getCardinality() { return cardinality; }
    /// The number of attributes
    unsigned getAttributeCount() { return attributes.size(); }
@@ -68,6 +68,8 @@ class Table
    const Attribute& getAttribute(unsigned index) const { return attributes[index]; }
    /// Search for a specific attribute
    int findAttribute(const std::string& name);
+   /// Search for a specific attribute
+   const Attribute& getAttribute(const std::string& name);
 };
 //---------------------------------------------------------------------------
 #endif
