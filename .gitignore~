@@ -20,4 +20,4 @@
 *.out
 *.app
 
-tpch
+/data/tpch

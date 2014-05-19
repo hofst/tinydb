@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <set>
 #include <assert.h>
-#include <boost/concept_check.hpp>
 
 using namespace std;
 
