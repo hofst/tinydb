@@ -8,12 +8,13 @@
 class CrossProduct : public Operator
 {
    private:
+   
+
+   public:
    /// The input
    std::unique_ptr<Operator> left,right;
    /// Read the left side?
    bool readLeft;
-
-   public:
    /// Constructor
    CrossProduct(std::unique_ptr<Operator>&& left,std::unique_ptr<Operator>&& right);
    /// Destructor

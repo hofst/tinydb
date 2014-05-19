@@ -10,8 +10,6 @@
 class HashJoin : public Operator
 {
    private:
-   /// The input
-   std::unique_ptr<Operator> left,right;
    /// The registers
    const Register* leftValue,*rightValue;
    /// The copy mechanism
@@ -22,6 +20,8 @@ class HashJoin : public Operator
    std::unordered_multimap<Register,std::vector<Register>,Register::hash>::const_iterator iter,iterLimit;
 
    public:
+   /// The input
+   std::unique_ptr<Operator> left,right;
    /// Constructor
    HashJoin(std::unique_ptr<Operator>&& left,std::unique_ptr<Operator>&& right,const Register* leftValue,const Register* rightValue);
    /// Destructor

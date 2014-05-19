@@ -213,5 +213,6 @@ bin/examples/exercise05.o: examples/exercise05.cpp \
  /usr/include/c++/4.9/bits/regex_executor.h \
  /usr/include/c++/4.9/bits/regex_executor.tcc /usr/include/c++/4.9/set \
  /usr/include/c++/4.9/bits/stl_set.h \
- /usr/include/c++/4.9/bits/stl_multiset.h src/Assertion.hpp \
- /usr/include/assert.h src/Query_Plan.hpp src/Parser.hpp
+ /usr/include/c++/4.9/bits/stl_multiset.h src/Utils.hpp \
+ /usr/include/assert.h src/Query_Plan.hpp src/Parser.hpp \
+ src/Join_Graph.hpp src/operator/Operator.hpp
