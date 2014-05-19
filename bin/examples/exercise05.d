@@ -1,5 +1,5 @@
 bin/examples/exercise05.o: examples/exercise05.cpp \
- /usr/include/stdc-predef.h src/Database.hpp src/Table.hpp \
+ /usr/include/stdc-predef.h src/Parser.hpp src/Database.hpp src/Table.hpp \
  src/Attribute.hpp src/Register.hpp /usr/include/c++/4.9/string \
  /usr/include/x86_64-linux-gnu/c++/4.9/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/4.9/bits/os_defines.h \
@@ -213,9 +213,5 @@ bin/examples/exercise05.o: examples/exercise05.cpp \
  /usr/include/c++/4.9/bits/regex_executor.h \
  /usr/include/c++/4.9/bits/regex_executor.tcc /usr/include/c++/4.9/set \
  /usr/include/c++/4.9/bits/stl_set.h \
- /usr/include/c++/4.9/bits/stl_multiset.h /usr/include/assert.h \
- src/Parser.hpp src/Database.hpp src/operator/Tablescan.hpp \
- src/operator/CrossProduct.hpp src/operator/Selection.hpp \
- src/operator/Projection.hpp src/operator/Distinct.hpp \
- src/operator/Printer.hpp src/operator/Chi.hpp src/operator/HashJoin.hpp \
- src/Query_Plan.hpp src/Parser.hpp
+ /usr/include/c++/4.9/bits/stl_multiset.h src/Assertion.hpp \
+ /usr/include/assert.h src/Query_Plan.hpp src/Parser.hpp

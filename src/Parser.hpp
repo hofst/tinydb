@@ -14,9 +14,10 @@
 #include <string>
 #include <regex>
 #include <vector>
+#include <array>
 #include <algorithm>
 #include <set>
-#include <assert.h>
+#include "Assertion.hpp"
 
 using namespace std;
 
@@ -36,6 +37,25 @@ vector<string> split_match(string str, string match) {
     }
   }
   return splits;
+}
+
+vector<string> split(string str, string separators) {
+  /* Split spring between separators */
+  vector<string> result;
+  result.push_back("");
+  for (auto c : str) {
+    bool separating = false;
+    for (auto s : separators) {
+      if (c == s) separating = true;
+    }
+    if (separating) {
+      string token;
+      result.push_back("");
+    } else {
+      result[result.size()-1] += c;
+    }
+  }
+  return move(result);
 }
 
 struct Attr {
@@ -69,6 +89,10 @@ struct Constant_Binding {
   bool operator<(const Constant_Binding& other) const
   {
     return (attr.alias + attr.name + constant) < (other.attr.alias + other.attr.name + other.constant);
+  }
+  
+  string str() {
+   return attr.str() + "=" + constant;   
   }
 };
 
@@ -116,11 +140,13 @@ struct Parser_Result {
   set<Constant_Binding> constant_bindings;  // list of (attribute; constant)
   
   Parser_Result (string query, string db) : query(query), db(db)  {
+    cout << "***** Running Parser *****" << endl;
+    
     // regex definitions
-    regex rx_sql( "select (\\*|\\w+\\.\\w+(?:,\\w+\\.\\w+)*) from (\\w+ \\w+(?:,\\w+ \\w+)*) where (\\w+\\.\\w+=(?:\\w+\\.\\w+|\\w+)(?: and \\w+\\.\\w+=(?:\\w+\\.\\w+|\\w+))*)",
+    regex rx_sql( "select (\\*|\\w+\\.\\w+(?:,\\w+\\.\\w+)*) from (\\w+ \\w+(?:,\\w+ \\w+)*) where (.*)",
 			  regex_constants::ECMAScript | regex_constants::icase);
     smatch matches;
-    assert(regex_search(query, matches, rx_sql,  regex_constants::match_flag_type::match_continuous));
+    assertion(regex_search(query, matches, rx_sql,  regex_constants::match_flag_type::match_continuous), string("Invalid SQL Query: Maybe a whitespace error (see exercise 01 for convention)"));
     
     // extract main parts of the sql query
     string select_clause = matches[1];
@@ -141,12 +167,12 @@ struct Parser_Result {
     database.open(db);
     
     for (auto& relation : relations) {
-	assert(database.hasTable(relation));  // make sure relations exist
+	assertion(database.hasTable(relation), string("Relation not exists: '") + relation + string("'"));  // make sure relations exist
     }
     
     for (auto& attr : attributes) {
 	auto table = database.getTable(alias_to_relation[attr.alias]);
-	assert(table.findAttribute(attr.name) > -1);  // make sure attributes exist
+	assertion(table.findAttribute(attr.name) > -1, string("Attribute not exists: '") + attr.name + string("'"));  // make sure attributes exist
     }
     
     cout << endl << "***** Sucessfully parsed the following query: *****" << endl << query << endl;
@@ -208,8 +234,8 @@ struct Parser_Result {
 
   void extract_bindings(string& where_clause) {
     /* Extracts the bindings from the where_clause */
-    auto tokens = split_match(where_clause, "(\\w|\\.|#)+");
-    
+    auto tokens = split(where_clause, ",= ");
+        
     cout << "Bindings: ";
     for (unsigned i=0; i<tokens.size(); i+=3) {
       auto attr1 = Attr(tokens[i]);
@@ -227,6 +253,90 @@ struct Parser_Result {
       }
     }
     cout << endl;
+  }
+  
+  void build_query_graph() {
+    cout << endl << "***** Building Query Graph: *****" << endl;
+    
+    // Open Database
+    Database database;
+    database.open(db);
+    
+    set<string> nodes = relations;
+    set<Relation_Binding> edges = relation_bindings;
+    
+    // Output Connected Subgraphs
+    cout << endl << "***** Connected Subgraphs: *****" << endl;
+    set<set<string>> connected_subgraphs;
+    for (auto relation : nodes) {
+      connected_subgraphs.insert({relation}); // initialize subgraphs with single nodes
+    }
+    set<Relation_Binding> passed_edges;
+    for (auto relation_binding : edges) {
+      if (passed_edges.find(relation_binding) != passed_edges.end()) continue;	 // check if edge already processed
+      passed_edges.insert(Relation_Binding(relation_binding.r1, relation_binding.r2));
+      passed_edges.insert(Relation_Binding(relation_binding.r2, relation_binding.r1));
+      
+      // merge subgraphs
+      set<string> subgraph1;
+      set<string> subgraph2;
+      for (auto& subgraph : connected_subgraphs) {
+	if (subgraph.find(relation_binding.r1) != subgraph.end()) {
+	  subgraph1 = subgraph;
+	}
+	if (subgraph.find(relation_binding.r2) != subgraph.end()) {
+	  subgraph2 = subgraph;
+	}
+      }
+      set<string> merged_graph = subgraph1;
+      merged_graph.insert(subgraph2.begin(), subgraph2.end());
+      connected_subgraphs.insert(move(merged_graph));
+      connected_subgraphs.erase(subgraph2);
+      connected_subgraphs.erase(subgraph1);
+    }
+    
+    for (auto subgraph : connected_subgraphs) {
+      for (auto relation : subgraph) {
+	cout << relation << ", ";
+      }
+      cout << endl;
+    }
+    
+    // Output constant bindings
+    cout << endl << "***** Bindings that can be pushed down and result cardinalities: *****" << endl;
+    for (auto constant_binding : constant_bindings) {
+      auto t1 = database.getTable(alias_to_relation[constant_binding.attr.alias]); 
+      auto a1 = t1.getAttribute(constant_binding.attr.name); 
+      cout << alias_to_relation[constant_binding.attr.alias] << "." << constant_binding.attr.name << "=" << constant_binding.constant << ": ";
+      if (a1.getKey()) {
+	cout << 1.0;  // A Key yields a cardinality of 1 (or 0)
+      } else {
+	cout << 1.0 / a1.getUniqueValues() * t1.getCardinality();  // Selectivity times Cardinality yields Result Cardinality of a Selection
+      }
+      cout << endl;
+    }
+    
+    // Output cardinalities
+    cout << endl << "***** Estimated Selectivities *****" << endl;
+    for (auto attr_binding : attr_bindings) {
+      cout << attr_binding.str() << ": ";
+      auto t1 = database.getTable(alias_to_relation[attr_binding.attr1.alias]); 
+      auto t2 = database.getTable(alias_to_relation[attr_binding.attr2.alias]); 
+      auto a1 = t1.getAttribute(attr_binding.attr1.name); 
+      auto a2 = t1.getAttribute(attr_binding.attr2.name);
+      /* Estimations as in exercise 02 */
+      if (a1.getKey() && a2.getKey()) {
+	cout << 1.0 / max(t1.getCardinality(), t2.getCardinality());
+      } else if (a1.getKey() && !a2.getKey()) {
+	cout << 1.0 / t1.getCardinality();
+      } else if (!a1.getKey() && a2.getKey()) {
+	cout << 1.0 / t2.getCardinality();
+      } else if (!a1.getKey() && !a2.getKey()) {
+	cout << 1.0 / max(a1.getUniqueValues(), a2.getUniqueValues());
+      }
+      cout << endl;
+    }
+    
   }
 };
 
