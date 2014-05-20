@@ -13,5 +13,5 @@ int main() {
   //parser_result.build_query_graph();
   //query_plan.apply_canonical();
   query_plan.apply_goo();
-  //query_plan.run();
+  //query_plan.output_result();
 }

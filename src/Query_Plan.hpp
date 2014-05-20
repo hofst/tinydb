@@ -23,10 +23,11 @@
 
 struct Query_Plan {
   Parser_Result parser_result;
-  map<Attr, const Register*> attr_to_register;
-  map<string, unique_ptr<Operator>> alias_to_filtered_tables;  // holds the filtered table scans
+  map<string, shared_ptr<Join_Graph_Node>> join_graphs;
   
+  map<Attr, const Register*> attr_to_register;
   map<string, Register> equal_constant_registers; // must remain in scope or output will be empty!
+  
   unique_ptr<Database> db;
   
   unique_ptr<Operator> result;
@@ -34,11 +35,11 @@ struct Query_Plan {
   Query_Plan(Parser_Result parser_result) : parser_result(parser_result), db(unique_ptr<Database>(new Database)) {
     db->open(parser_result.db);
     
-    run_pushed_down_selections();
+    init_join_tree();
   }
   
-  void run_pushed_down_selections () {
-    /* Prepares alias_to_filtered_tables by applying pushed down selectections on table scans */
+  void init_join_tree () {
+    /* Inits the join tree and applies pushed down selections */
     
     cout << endl << "***** Applying pushed down selections *****" << endl;
     
@@ -55,30 +56,22 @@ struct Query_Plan {
     
     // Constant Bindings
     // basically convert from Tablescan-map to Operator-map
-    for (auto& alias_table : alias_to_tables) {
-      alias_to_filtered_tables[alias_table.first] = move(alias_table.second);
+    for (auto alias : parser_result.aliases) {
+      shared_ptr<Join_Graph_Node> leaf(new Join_Graph_Node(move(alias_to_tables[alias])), alias, Node_Type::LEAF);
+      join_graphs[alias] = leaf;
     }
-    
     
     for (auto& binding : parser_result.constant_bindings) {
       equal_constant_registers[binding.constant] = Register(binding.constant);
-      unique_ptr<Chi> filter(new Chi(move(alias_to_filtered_tables[binding.attr.alias]),Chi::Equal,attr_to_register[binding.attr],&equal_constant_registers[binding.constant]));
+      unique_ptr<Chi> filter(new Chi(move(join_graphs[binding.attr.alias]),Chi::Equal,attr_to_register[binding.attr],&equal_constant_registers[binding.constant]));
       const Register* filtered_register=filter->getResult();
-      alias_to_filtered_tables[binding.attr.alias] = unique_ptr<Selection> (new Selection(move(filter),filtered_register));  
+      join_graphs[binding.attr.alias] = unique_ptr<Selection> (new Selection(move(filter),filtered_register));  
     }
   }
-    
-  void run() {
-    /* Run a query in form of Parser_Result on tinydb */
-       
+     
+  void output_result() {
     cout << endl << "***** Running Query: *****" << endl;
     
-    // assuming an algorithm was already applied
-    
-    output_result();
-  }
-  
-  void output_result() {
     assertion(!!result, "No Query-Plan existing. Cannot output result until algorithm (like GOO) was applied");
     
     // Apply Projections
@@ -94,47 +87,41 @@ struct Query_Plan {
     out.close();
   }
   
+  shared_ptr<Join_Graph_Node> join(shared_ptr<Join_Graph_Node> n1, shared_ptr<Join_Graph_Node> n2) {
+    shared_ptr<Join_Graph_Node> tmp_node = n1->join(n2);
+    join_graphs.erase(n1);
+    join_graphs.erase(n2);
+    join_graphs[tmp_node->left.aliases + tmp_node->right.aliases] = tmp_node;
+    return tmp_node;
+  }
+  
+  void unjoin(shared_ptr<Join_Graph_Node> n) {
+    n->unjoin();
+    join_graphs[tmp_node->left.aliases] = tmp_node->left;
+    join_graphs[tmp_node->right.aliases] = tmp_node->right;
+    join_graphs.erase(n);
+    return tmp_node;
+  }
+  
   void apply_goo() {
-    cout << endl << "***** Creating GOO Query Plan with Crossproducts*****" << endl;
+    cout << endl << "***** Creating GOO Query Plan with Crossproducts*****" << endl;  
     
-    // initialize join_graph
-    Join_Graph join_graph;
-    for (auto alias : parser_result.aliases) {
-     join_graph.add_leaf(alias, Join_Graph_Node(move(alias_to_filtered_tables[alias]))); 
-    }
-    
-    
-    auto unjoined_nodes = join_graph.leaves;
-    while (unjoined_nodes.size() > 1) {
-      shared_ptr<Join_Graph_Node> best_node; // (join/crossproduct)
-      for (auto node_pair : all_pairs_in_set<Join_Graph_Node>(unjoined_nodes)) {
-	shared_ptr<Join_Graph_Node> tmp_node;
+    while (join_graphs.size() > 1) {
+      pair<shared_ptr<Join_Graph_Node>, shared_ptr<Join_Graph_Node>> best_pair;
+      int best_size;
+      
+      set<shared_ptr<Join_Graph_Node>> node_pairs = all_pairs_in_set<shared_ptr<Join_Graph_Node>>(map_values<string, shared_ptr<Join_Graph_Node>>(join_graphs));
+      
+      for (auto node_pair : node_pairs) {
+	shared_ptr<Join_Graph_Node> tmp_node = join(node_pair.first, node_pair.second);
 	
-	unique_ptr<Operator> tmp_result;
-	auto attribute_bindings = parser_result.find_attribute_bindings(node_pair.first.aliases, node_pair.second.aliases); // TODO
-	if (attribute_bindings.size() == 0) {
-	  // Crossproduct
-	  tmp_result =  unique_ptr<Operator> (new CrossProduct(move(node_pair.first.table), move(node_pair.second.table)));
-	} else {
-	 // Join
-	  auto binding = attribute_bindings.pop // TODO
-	  tmp_result =  unique_ptr<Operator> (new HashJoin(move(node_pair.first.table), move(node_pair.second.table), //TODO ));
-	  
-	  apply remaining selects //TODO
+	if (!best_pair || best_size > tmp_node->size) {
+	 best_pair = node_pair;
+	 best_size = tmp_node->size;
 	}
-	
-	tmp_node = Join_Graph_Node(move(join));
-	if (!best_node) {
-	 best_node = tmp_node;
-	} else {
-	 if (best_node.size < tmp_node.size) {
-	   tmp_node.revert();
-	 } else {
-	   best_node.revert();
-	   best_node = tmp_node;
-	 }
-	} 
+	unjoin(tmp_node);
       }
+      join(best_pair.first, best_pair.second);
     }
     
     result = move(unjoined_nodes.begin().evaluate());
@@ -143,24 +130,11 @@ struct Query_Plan {
   void apply_canonical() {
     cout << endl << "***** Creating Canonical Query Plan *****" << endl;
     
-    // choose first table on which to join
-    string first_alias = alias_to_filtered_tables.begin()->first;
-    result = move(alias_to_filtered_tables[first_alias]);
-    alias_to_filtered_tables.erase(first_alias);
-    
-    // Canonical CrossProduct
-    for (auto& alias_table : alias_to_filtered_tables) {
-      result = unique_ptr<Operator> (new CrossProduct(move(alias_table.second), move(result)));
+    while (join_graphs.size() > 1) {
+      join(join_graphs.begin().second, join_graphs.begin().next().second);
     }
     
-    // Canonical Selection (join bindings)
-    for (auto& binding : parser_result.attr_bindings) {
-      unique_ptr<Chi> filter(new Chi(move(result),Chi::Equal,attr_to_register[binding.attr1],attr_to_register[binding.attr2]));
-      const Register* filtered_register=filter->getResult();
-      result = move(unique_ptr<Selection> (new Selection(move(filter),filtered_register)));  
-    }
-  }
-
+    result = move(unjoined_nodes.begin().evaluate());
 };
 
 #endif

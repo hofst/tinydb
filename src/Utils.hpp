@@ -45,4 +45,21 @@ int fak(int n) {
     return 1;
 }
 
+string set_representation(set<string> s) {
+  string result;
+  for (e : s) {
+    result += e;
+  }
+}
+
+template<typename T1>
+template<typename T2>
+set<T2> map_values(map<T1,T2> m) {
+  set<T2> result;
+  for (auto e : m) {
+    result.insert(e->second);
+  }
+  return move(result);
+}
+
 #endif

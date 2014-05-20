@@ -25,13 +25,13 @@ struct Join_Graph_Node {
   bool evaluated;
   int size;
   Node_Type type;
-  set aliases;
+  string aliases;
   
   unique_ptr<Operator> table; // only accessible while evaluated == False!
   shared_ptr<Join_Graph_Node> next;
   shared_ptr<Join_Graph_Node> left, right;
   
-  Join_Graph_Node(unique_ptr<Operator> table, type) : evaluated(false), type(type) {
+  Join_Graph_Node(unique_ptr<Operator> table, string aliases, type) : evaluated(false), aliases(aliases), type(type) {
     table->open();
     while(table->next()) size++;
     table->close();
@@ -55,7 +55,7 @@ struct Join_Graph_Node {
     }
   }
   
-  void revert() {
+  void unjoin() {
     unique_ptr<Operator> left_table, right_table;
     
     assertion(type != Node_Type::LEAF, "A Leaf cannot be reverted");
@@ -74,19 +74,28 @@ struct Join_Graph_Node {
     right.evaluated = false;
   }
   
+  shared_ptr<Join_Graph_Node> join(shared_ptr<Join_Graph_Node> node2) {
+    unique_ptr<Operator> tmp_result;
+	auto attribute_bindings = parser_result.find_attribute_bindings(node_pair.first.aliases, node_pair.second.aliases); // TODO
+	if (attribute_bindings.size() == 0) {
+	  // Crossproduct
+	  tmp_result =  unique_ptr<Operator> (new CrossProduct(move(node_pair.first.table), move(node_pair.second.table)));
+	} else {
+	 // Join
+	  auto binding = attribute_bindings.pop // TODO
+	  tmp_result =  unique_ptr<Operator> (new HashJoin(move(node_pair.first.table), move(node_pair.second.table), //TODO ));
+	  
+	  apply remaining selects //TODO
+	}
+  }
+  
+  
   bool operator<(const Join_Graph_Node& n2) const
   {
     return table < n2.table;
   }
-};
-
-struct Join_Graph {
-  map<string, Join_Graph_Node> leaves;
   
-  void add_leaf(string alias, Join_Graph_Node node) {
-    set<string> aliases {alias};  
-    node.aliases = move(aliases);
-    leaves[alias] = move(node);
-  };
+  
+};
 
 #endif
