@@ -98,23 +98,27 @@ struct Query_Plan {
     unique_ptr<Operator> table (new CrossProduct(move(n1->table), move(n2->table)));
     shared_ptr<Join_Graph_Node> n = n1->join(n1, n2, move(table));
     
+    
     // Selects
     for (auto binding : parser_result.find_attr_bindings(n->left->aliases, n->right->aliases)) {
       unique_ptr<Selection> selection (new Selection(move(n->table),attr_to_register[binding.attr1], attr_to_register[binding.attr2]));
       n = n->select(n, move(selection));  
     }
-    
+       
     join_graphs.erase(set_representation(n1->aliases));
     join_graphs.erase(set_representation(n2->aliases));
     join_graphs[set_representation(n->aliases)] = n;
+    
     return n;
   }
   
   void unjoin(shared_ptr<Join_Graph_Node> n) {
-    n->unjoin();
     join_graphs[set_representation(n->left->aliases)] = n->left;
-    join_graphs[set_representation(n->right->aliases)] = n->right;
+    if (n->type == Node_Type::CROSSPRODUCT) {
+      join_graphs[set_representation(n->right->aliases)] = n->right;
+    }
     join_graphs.erase(set_representation(n->aliases));
+    n->unjoin();
   }
   
   void apply_goo() {
@@ -123,7 +127,7 @@ struct Query_Plan {
     while (join_graphs.size() > 1) {
       pair<shared_ptr<Join_Graph_Node>, shared_ptr<Join_Graph_Node>> best_pair;
       bool init = false;
-      int best_size;
+      int best_size = 0;
       
       auto node_pairs = all_pairs_in_set<shared_ptr<Join_Graph_Node>>(map_values<shared_ptr<Join_Graph_Node>>(join_graphs));
       
