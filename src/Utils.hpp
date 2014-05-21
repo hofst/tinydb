@@ -8,7 +8,7 @@
 
 using namespace std;
 
-void assertion(bool condition, string explanation) {
+void assertion(bool condition, string explanation="") {
   if (!condition) {
    cout << endl << "!!!!! " << explanation << " !!!!!" << endl << endl; 
    assert(false);

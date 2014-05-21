@@ -32,6 +32,7 @@ struct Join_Graph_Node {
   shared_ptr<Join_Graph_Node> left, right;
   
   Join_Graph_Node(unique_ptr<Operator> table, set<string> aliases, Node_Type type) : evaluated(false), type(type), aliases(aliases) {
+    
     table->open();
     while(table->next()) size++;
     table->close();
@@ -82,7 +83,24 @@ struct Join_Graph_Node {
     next = shared_ptr<Join_Graph_Node>(new Join_Graph_Node(move(table), aliases, Node_Type::SELECT));
     next->left = node;
     return next;
-  }  
+  }
+  
+  void print(int depth=0) {
+    if (depth == 0) cout << endl << "***** Printing Join Graph *****" << endl;
+    
+    for (int i=0; i < depth; i++) cout << "\t";
+    
+    if (type==Node_Type::LEAF) {
+      cout << "Leaf: " << set_representation(aliases) << endl;
+    } else if (type==Node_Type::SELECT) {
+      cout << "Select: " << set_representation(aliases) << endl;
+      left->print(depth+1);
+    } else if (type==Node_Type::CROSSPRODUCT) {
+      cout << "CrossProduct: " << set_representation(aliases) << endl; 
+      left->print(depth+1);
+      right->print(depth+1);
+    }
+  }
   
   bool operator<(const Join_Graph_Node& n2) const {
     return table < n2.table;

@@ -212,7 +212,7 @@ struct Parser_Result {
     
     auto aliases_with_attribute = split_match(select_clause, "(\\w|\\.)+");  // list of alias.attribute
     
-    cout << "Selected attributes: ";
+    cout << "Selected:\t";
     for (auto alias_with_attribute : aliases_with_attribute) {
       auto attr = Attr(alias_with_attribute);
       cout << attr.str() << ", ";
@@ -225,7 +225,7 @@ struct Parser_Result {
     /* Extracts the mapping alias->relation from the from_clause */
     auto tokens = split_match(from_clause, "\\w+");
     
-    cout << "Alias->Relation mappings: ";
+    cout << "Mappings:\t";
     for (unsigned i=0; i<tokens.size(); i+=2) {
       cout << tokens[i+1] << "->" << tokens[i] << ", ";
       add_alias_to_relation(tokens[i+1], tokens[i]);
@@ -237,7 +237,7 @@ struct Parser_Result {
     /* Extracts the bindings from the where_clause */
     auto tokens = split(where_clause, ",= ");
         
-    cout << "Bindings: ";
+    cout << "Bindings:\t";
     for (unsigned i=0; i<tokens.size(); i+=3) {
       auto attr1 = Attr(tokens[i]);
       cout << attr1.str() << "=";
@@ -340,15 +340,15 @@ struct Parser_Result {
   }
   
   set<Attr_Binding> find_attr_bindings(set<string> aliases1, set<string> aliases2) {
-      set<Attr_Binding> attr_bindings;
+      set<Attr_Binding> result;
       for (Attr_Binding attr_binding : attr_bindings) {
 	for (string a1 : aliases1) {
 	  for (string a2 : aliases2) {
-	      if (attr_binding.attr1.alias == a1 && attr_binding.attr2.alias == a2) attr_bindings.insert(attr_binding);
+	      if (attr_binding.attr1.alias == a1 && attr_binding.attr2.alias == a2) result.insert(attr_binding);
 	  }
 	}
       }
-      return move(attr_bindings);
+      return move(result);
   }
 };
 

@@ -100,8 +100,8 @@ struct Query_Plan {
     
     // Selects
     for (auto binding : parser_result.find_attr_bindings(n->left->aliases, n->right->aliases)) {
-      unique_ptr<Chi> filter(new Chi(move(n->table),Chi::Equal,attr_to_register[binding.attr1], attr_to_register[binding.attr2]));
-      n = n->select(n, unique_ptr<Selection> (new Selection(move(filter),filter->getResult())));  
+      unique_ptr<Selection> selection (new Selection(move(n->table),attr_to_register[binding.attr1], attr_to_register[binding.attr2]));
+      n = n->select(n, move(selection));  
     }
     
     join_graphs.erase(set_representation(n1->aliases));
@@ -140,17 +140,21 @@ struct Query_Plan {
       join(best_pair.first, best_pair.second);
     }
     
-    result = move(join_graphs.begin()->second->table);
+    result = move(get_join_graph()->table);
   }
   
-  void apply_canonical() {
-    cout << endl << "***** Creating Canonical Query Plan *****" << endl;
+  void apply_canonical_optimized() {
+    cout << endl << "***** Creating Logically Optimized Canonical Query Plan *****" << endl;
     
     while (join_graphs.size() > 1) {
       join(join_graphs.begin()->second, (++join_graphs.begin())->second);
     }
     
-    result = move(join_graphs.begin()->second->table);
+    result = move(get_join_graph()->table);
+  }
+  
+  shared_ptr<Join_Graph_Node> get_join_graph() {
+      return join_graphs.begin()->second;
   }
 };
 
