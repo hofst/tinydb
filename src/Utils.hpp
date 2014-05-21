@@ -47,18 +47,26 @@ int fak(int n) {
 
 string set_representation(set<string> s) {
   string result;
-  for (e : s) {
+  for (auto e : s) {
     result += e;
   }
+  return result;
 }
 
-template<typename T1>
-template<typename T2>
-set<T2> map_values(map<T1,T2> m) {
-  set<T2> result;
+template<typename T>
+set<T> map_values(map<string,T> m) {
+  set<T> result;
   for (auto e : m) {
-    result.insert(e->second);
+    result.insert(e.second);
   }
+  return move(result);
+}
+
+template<typename T>
+set<T> merge_sets(set<T> s1, set<T> s2) {
+  set<T> result;
+  result.insert(s1.begin(), s1.end());
+  result.insert(s2.begin(), s2.end());
   return move(result);
 }
 

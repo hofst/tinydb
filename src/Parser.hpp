@@ -17,6 +17,7 @@
 #include <array>
 #include <algorithm>
 #include <set>
+#include <boost/concept_check.hpp>
 #include "Utils.hpp"
 
 using namespace std;
@@ -336,7 +337,18 @@ struct Parser_Result {
       }
       cout << endl;
     }
-    
+  }
+  
+  set<Attr_Binding> find_attr_bindings(set<string> aliases1, set<string> aliases2) {
+      set<Attr_Binding> attr_bindings;
+      for (Attr_Binding attr_binding : attr_bindings) {
+	for (string a1 : aliases1) {
+	  for (string a2 : aliases2) {
+	      if (attr_binding.attr1.alias == a1 && attr_binding.attr2.alias == a2) attr_bindings.insert(attr_binding);
+	  }
+	}
+      }
+      return move(attr_bindings);
   }
 };
 

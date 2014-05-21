@@ -7,15 +7,13 @@
 /// A selection
 class Selection : public Operator
 {
-   private:
+   public:
    /// The input
    std::unique_ptr<Operator> input;
    /// Registers of the condition
    const Register* condition;
    /// Second register for implicit equal tests
    const Register* equal;
-
-   public:
    /// Constructor. Condition must be a bool value
    Selection(std::unique_ptr<Operator>&& input,const Register* condition);
    /// Constructor. Registers a and b are compared
