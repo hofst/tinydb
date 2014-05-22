@@ -23,7 +23,8 @@
 
 struct Query_Plan {
   Parser_Result parser_result;
-  map<string, shared_ptr<Join_Graph_Node>> join_graphs;
+  map<string, shared_ptr<Join_Graph_Node>> join_graph_leaves;
+  set<shared_ptr<Join_Graph_Node>> join_graph_roots;
   
   map<Attr, const Register*> attr_to_register;
   map<string, Register> equal_constant_registers;
@@ -58,20 +59,25 @@ struct Query_Plan {
     for (auto alias : parser_result.aliases) {
       set<string> aliases {alias};
       shared_ptr<Join_Graph_Node> leaf(new Join_Graph_Node(move(alias_to_tables[alias]), aliases, Node_Type::LEAF));
-      join_graphs[alias] = leaf;
+      join_graph_leaves[alias] = leaf;
     }
     
     for (auto& binding : parser_result.constant_bindings) {
       equal_constant_registers[binding.constant] = Register(binding.constant);
       
       unique_ptr<Chi> filter(new Chi(
-	move(join_graphs[binding.attr.alias]->table),
+	move(join_graph_leaves[binding.attr.alias]->table),
 	Chi::Equal,
 	attr_to_register[binding.attr],
 	&equal_constant_registers[binding.constant]));
       
       const Register* filtered_register=filter->getResult();
-      join_graphs[binding.attr.alias]->table = unique_ptr<Selection> (new Selection(move(filter),filtered_register));  
+      join_graph_leaves[binding.attr.alias]->table = unique_ptr<Selection> (new Selection(move(filter),filtered_register));  
+    }
+    
+    // At the beginning: leaves = join_graph_roots
+    for (auto leaf : join_graph_leaves) {
+      join_graph_roots.insert(leaf.second); 
     }
   }
      
@@ -98,41 +104,38 @@ struct Query_Plan {
     unique_ptr<Operator> table (new CrossProduct(move(n1->table), move(n2->table)));
     shared_ptr<Join_Graph_Node> n = n1->join(n1, n2, move(table));
     
-    
     // Selects
     for (auto binding : parser_result.find_attr_bindings(n->left->aliases, n->right->aliases)) {
       unique_ptr<Selection> selection (new Selection(move(n->table),attr_to_register[binding.attr1], attr_to_register[binding.attr2]));
       n = n->select(n, move(selection));  
     }
-       
-    join_graphs.erase(set_representation(n1->aliases));
-    join_graphs.erase(set_representation(n2->aliases));
-    join_graphs[set_representation(n->aliases)] = n;
     
+    join_graph_roots.insert(n);
+    join_graph_roots.erase(n1);
+    join_graph_roots.erase(n2);
     return n;
   }
   
-  void unjoin(shared_ptr<Join_Graph_Node> n) {
-    join_graphs[set_representation(n->left->aliases)] = n->left;
-    if (n->type == Node_Type::CROSSPRODUCT) {
-      join_graphs[set_representation(n->right->aliases)] = n->right;
-    }
-    join_graphs.erase(set_representation(n->aliases));
-    n->unjoin();
+  shared_ptr<Join_Graph_Node> unjoin(shared_ptr<Join_Graph_Node> n) {
+    n = n->unjoin();
+    join_graph_roots.insert(n->left);
+    join_graph_roots.insert(n->right);
+    join_graph_roots.erase(n);
+    return n;
   }
   
   void apply_goo() {
     cout << endl << "***** Creating GOO Query Plan with Crossproducts*****" << endl;  
-    
-    while (join_graphs.size() > 1) {
+       
+    while (join_graph_roots.size() > 1) {
       pair<shared_ptr<Join_Graph_Node>, shared_ptr<Join_Graph_Node>> best_pair;
       bool init = false;
       int best_size = 0;
       
-      auto node_pairs = all_pairs_in_set<shared_ptr<Join_Graph_Node>>(map_values<shared_ptr<Join_Graph_Node>>(join_graphs));
-      
+      auto node_pairs = all_pairs_in_set<shared_ptr<Join_Graph_Node>>(join_graph_roots);
+      shared_ptr<Join_Graph_Node> tmp_node;
       for (auto node_pair : node_pairs) {
-	shared_ptr<Join_Graph_Node> tmp_node = join(node_pair.first, node_pair.second);
+	tmp_node = join(node_pair.first, node_pair.second);
 	
 	if (!init || best_size > tmp_node->size) {
 	 init = true;
@@ -150,15 +153,15 @@ struct Query_Plan {
   void apply_canonical_optimized() {
     cout << endl << "***** Creating Logically Optimized Canonical Query Plan *****" << endl;
     
-    while (join_graphs.size() > 1) {
-      join(join_graphs.begin()->second, (++join_graphs.begin())->second);
+    while (join_graph_roots.size() > 1) {
+      join(*join_graph_roots.begin(), *(++join_graph_roots.begin()));
     }
     
     result = move(get_join_graph()->table);
   }
   
   shared_ptr<Join_Graph_Node> get_join_graph() {
-      return join_graphs.begin()->second;
+      return *join_graph_roots.begin();
   }
 };
 

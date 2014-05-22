@@ -12,25 +12,9 @@ int main() {
   
   auto query_plan = Query_Plan(parser_result);
   //parser_result.build_query_graph();
-  //query_plan.apply_canonical_optimized();
-  query_plan.apply_goo();
+  query_plan.apply_canonical_optimized();
+  //query_plan.apply_goo();
   query_plan.output_result();
   query_plan.get_join_graph()->print();
 }
 
-int test() {
-  Database db;
-  db.open("data/uni");
-  unique_ptr<Tablescan> a (new Tablescan(db.getTable("studenten")));
-  set<string> s {"a"};
-  
-  shared_ptr<Join_Graph_Node> n(new Join_Graph_Node(move(a), s, Node_Type::LEAF));
-  shared_ptr<Join_Graph_Node> n2 = n;
-  unique_ptr<Operator> c = move(n->table);
-  cout << n.use_count() << endl;
-  n2.reset();
-  n.reset();
-  
-  cout << n.use_count() << endl;
-  return 0;
-}
