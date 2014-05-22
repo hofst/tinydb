@@ -363,8 +363,9 @@ bin/examples/exercise05.o: examples/exercise05.cpp \
  /usr/include/boost/preprocessor/seq/size.hpp \
  /usr/include/boost/preprocessor/seq/enum.hpp \
  /usr/include/boost/concept/detail/concept_undef.hpp src/Utils.hpp \
- /usr/include/assert.h src/Query_Plan.hpp src/Parser.hpp \
- src/Join_Graph.hpp /usr/include/boost/iterator/iterator_concepts.hpp \
+ /usr/include/assert.h src/operator/Operator.hpp src/Query_Plan.hpp \
+ src/Parser.hpp src/Join_Graph.hpp \
+ /usr/include/boost/iterator/iterator_concepts.hpp \
  /usr/include/boost/iterator/iterator_categories.hpp \
  /usr/include/boost/iterator/detail/config_def.hpp \
  /usr/include/boost/mpl/eval_if.hpp /usr/include/boost/mpl/identity.hpp \
@@ -385,4 +386,4 @@ bin/examples/exercise05.o: examples/exercise05.cpp \
  /usr/include/boost/mpl/aux_/preprocessed/gcc/and.hpp \
  /usr/include/boost/mpl/or.hpp \
  /usr/include/boost/mpl/aux_/preprocessed/gcc/or.hpp \
- /usr/include/boost/limits.hpp src/operator/Operator.hpp
+ /usr/include/boost/limits.hpp

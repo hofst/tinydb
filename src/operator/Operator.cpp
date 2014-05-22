@@ -10,3 +10,10 @@ Operator::~Operator()
 {
 }
 //---------------------------------------------------------------------------
+int Operator::size() {
+    int s = 0;
+    open();
+    while(next()) s++;
+    close();  
+    return s;
+}

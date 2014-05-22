@@ -34,19 +34,12 @@ struct Join_Graph_Node {
   
   Join_Graph_Node(unique_ptr<Operator> t, set<string> aliases, Node_Type type, shared_ptr<Join_Graph_Node> l = shared_ptr<Join_Graph_Node>(), shared_ptr<Join_Graph_Node> r = shared_ptr<Join_Graph_Node>())
   : evaluated(false), size(0), type(type), aliases(aliases), table(move(t)), left(l), right(r) {
-    update_size();
+    size = table->size();
     repr = representation();
   };
   
   ~Join_Graph_Node() {
     cout << "destructed: " << type_str() << " " << set_representation(aliases) << endl;
-  }
-   
-  void update_size() {
-    size = 0;
-    table->open();
-    while(table->next()) size++;
-    table->close(); 
   }
   
   shared_ptr<Join_Graph_Node> unjoin() {

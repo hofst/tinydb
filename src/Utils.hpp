@@ -5,6 +5,7 @@
 #include <string>
 #include <assert.h>
 #include <set>
+#include "operator/Operator.hpp"
 
 using namespace std;
 
