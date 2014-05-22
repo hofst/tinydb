@@ -42,31 +42,6 @@ struct Join_Graph_Node {
     cout << "destructed: " << type_str() << " " << set_representation(aliases) << endl;
   }
   
-  shared_ptr<Join_Graph_Node> unjoin() {
-    assertion(type != Node_Type::LEAF, "A Leaf cannot be unjoined");
-    shared_ptr<Join_Graph_Node> cross_node(this);
-    
-    // Before reverting the underlying crossproduct, revert all selects
-    while(cross_node->type == Node_Type::SELECT) {
-     shared_ptr<Operator> _n (move(cross_node->table));
-     cross_node->left->table = move(static_pointer_cast<Selection>(_n)->input);
-     cross_node->left->next.reset();
-     cross_node = cross_node->left;
-    }
-    // now all selects are reverted and there must be a crossproduct
-    assertion(cross_node->type == Node_Type::CROSSPRODUCT, "Crossproduct exptected");
-    
-    shared_ptr<Operator> _n (move(cross_node->table));
-    
-    cross_node->left->table = move(static_pointer_cast<CrossProduct>(_n)->left);
-    cross_node->left->evaluated = false;   
-    cross_node->left->next.reset();
-    cross_node->right->table = move(static_pointer_cast<CrossProduct>(_n)->right);
-    cross_node->right->evaluated = false;
-    cross_node->right->next.reset();
-    return cross_node;
-  }
-  
   shared_ptr<Join_Graph_Node> join(shared_ptr<Join_Graph_Node> node1, shared_ptr<Join_Graph_Node> node2, unique_ptr<Operator> table) {
     assertion(!node1->evaluated, "Nodes can only get evaluated once: " + set_representation(node1->aliases));
     assertion(!node2->evaluated, "Nodes can only get evaluated once: " + set_representation(node2->aliases));
@@ -126,6 +101,10 @@ struct Join_Graph_Node {
   
   bool operator<(const Join_Graph_Node& n2) const {
     return repr < n2.repr;
+  }
+  
+  string aliases_str() {
+   return set_representation(aliases); 
   }
   
   
