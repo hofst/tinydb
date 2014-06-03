@@ -71,7 +71,7 @@ struct Join_Graph_Node {
     if (depth == 0) cout << endl << "***** Printing Join Graph *****" << endl;
     
     for (int i=0; i < depth; i++) cout << "\t";
-    cout << type_str() << ": " << set_representation(aliases) << " (" << size << ")" << "   [" << this << "]" << endl;
+    cout << type_str() << ": " << set_representation(aliases) << " (size:" << size << ")" << "   [" << this << "]" << endl;
     
     if (type==Node_Type::SELECT) {
       left->print(depth+1);
