@@ -100,14 +100,27 @@ struct Query_Plan {
   }
   
   shared_ptr<Join_Graph_Node> join(shared_ptr<Join_Graph_Node> n1, shared_ptr<Join_Graph_Node> n2) {
-    // Crossproduct
-    unique_ptr<Operator> table (new CrossProduct(move(n1->table), move(n2->table)));
-    shared_ptr<Join_Graph_Node> n = n1->join(n1, n2, move(table));
+    auto attr_bindings = parser_result.find_attr_bindings(n1->aliases, n2->aliases);
+    
+    unique_ptr<Operator> table;
+    shared_ptr<Join_Graph_Node> n;
+    
+    if (attr_bindings.size() == 0) { 
+      // Crossproduct
+      table = unique_ptr<Operator>(new CrossProduct(move(n1->table), move(n2->table)));
+      n = n1->join(n1, n2, move(table));
+    } else {
+      // Hashjoin
+      auto attr_binding = *attr_bindings.begin();
+      attr_bindings.erase(attr_binding);
+      table = unique_ptr<Operator>(new HashJoin(move(n1->table), move(n2->table), attr_to_register[attr_binding.attr1], attr_to_register[attr_binding.attr2]));
+      n = n1->join(n1, n2, move(table), Node_Type::HASHJOIN);
+    }
     
     // Selects
-    for (auto binding : parser_result.find_attr_bindings(n1->aliases, n2->aliases)) {
+    for (auto binding : attr_bindings) {
       unique_ptr<Selection> selection (new Selection(move(n->table),attr_to_register[binding.attr1], attr_to_register[binding.attr2]));
-      n = n->select(n, move(selection));  
+      n = n->select(n, move(selection));
     }
     
     join_graph_roots.insert(n);
@@ -116,19 +129,26 @@ struct Query_Plan {
     return n;
   }
   
-   int join_test(shared_ptr<Join_Graph_Node> n1, shared_ptr<Join_Graph_Node> n2) {
+   int join_test(shared_ptr<Join_Graph_Node> n1, shared_ptr<Join_Graph_Node> n2, int threshold=-1) {
     // Crossproduct
     unique_ptr<Operator> table (new CrossProduct(move(n1->table), move(n2->table)));
     int select_counter = 0, table_size = 0;
     
     // Selects
-    for (auto binding : parser_result.find_attr_bindings(n1->aliases, n2->aliases)) {
+    auto attr_bindings = parser_result.find_attr_bindings(n1->aliases, n2->aliases); 
+    for (auto binding : attr_bindings) {
       select_counter++;
       unique_ptr<Selection> selection (new Selection(move(table),attr_to_register[binding.attr1], attr_to_register[binding.attr2]));
       table = move(selection);
     }
     
-    table_size = table->size();
+    if (select_counter) {
+      // it is a join
+      table_size = table->size(threshold);
+    } else {
+      // it is a cross product and we can calcualte the size
+      table_size = n1->size * n2->size;
+    }
     
     // Unjoin
     unjoin(n1, n2, move(table), select_counter);
@@ -150,17 +170,23 @@ struct Query_Plan {
   }
     
   void apply_goo() {
-    cout << endl << "***** Creating GOO Query Plan with Crossproducts*****" << endl;  
+    cout << endl << "***** Creating GOO Query Plan with Crossproducts *****" << endl;  
        
     while (join_graph_roots.size() > 1) {
       pair<shared_ptr<Join_Graph_Node>, shared_ptr<Join_Graph_Node>> best_pair;
-      int best_size = 0;
+      int best_size = -1;
       
       auto node_pairs = all_pairs_in_set<shared_ptr<Join_Graph_Node>>(join_graph_roots);
       for (auto node_pair : node_pairs) {
-	int join_test_size = join_test(node_pair.first, node_pair.second);
+	if (best_size==-1 && node_pairs.size() == 1) {
+	  // Pair can be choosen immediately
+	  best_pair = node_pair;
+	  break;
+	}
+	
+	int join_test_size = join_test(node_pair.first, node_pair.second, best_size);
 	cout << "GOO Join Tested : " << node_pair.first->aliases_str() << " x " << node_pair.second->aliases_str() << " with size " << join_test_size << endl;
-	if (!best_size || best_size > join_test_size) {
+	if (best_size==-1 || best_size > join_test_size) {
 	  best_pair = node_pair;
 	  best_size = join_test_size;
 	}

@@ -1,6 +1,6 @@
 #include "operator/Operator.hpp"
 //---------------------------------------------------------------------------
-Operator::Operator()
+Operator::Operator() : size_buffer(-1)
    // Constructor
 {
 }
@@ -10,10 +10,13 @@ Operator::~Operator()
 {
 }
 //---------------------------------------------------------------------------
-int Operator::size() {
-    int s = 0;
-    open();
-    while(next()) s++;
-    close();  
-    return s;
+int Operator::size(int threshold) {
+    if (size_buffer == -1) {
+      size_buffer = 0;
+      open();
+      while(next() && (threshold == -1 || size_buffer <= threshold))
+	size_buffer++;
+      close(); 
+    }
+    return size_buffer;
 }

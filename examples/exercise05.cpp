@@ -9,12 +9,11 @@ int main() {
    auto parser_result = Parser_Result(string("SELECT * FROM lineitem l,orders o,customer c WHERE l.l_orderkey=o.o_orderkey AND o.o_custkey=c.c_custkey AND c.c_name=Customer#000014993"),
    				       string("data/tpch/tpch"));
 
-  
   auto query_plan = Query_Plan(parser_result);
   //parser_result.build_query_graph();
   //query_plan.apply_canonical_optimized();
   query_plan.apply_goo();
-  query_plan.output_result();
   query_plan.get_join_graph()->print();
+  query_plan.output_result();
 }
 

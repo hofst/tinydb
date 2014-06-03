@@ -21,7 +21,9 @@ class Operator
    /// Close the operator
    virtual void close() = 0;
    
-   int size();
+   int size_buffer;
+   
+   int size(int threshold=-1);
 
    /// Get all produced values
    virtual std::vector<const Register*> getOutput() const = 0;
