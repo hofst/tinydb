@@ -40,8 +40,8 @@ bin/operator/Chi.o: src/operator/Chi.cpp /usr/include/stdc-predef.h \
  /usr/include/c++/4.9/bits/functional_hash.h \
  /usr/include/c++/4.9/bits/hash_bytes.h \
  /usr/include/c++/4.9/bits/range_access.h \
- /usr/include/c++/4.9/bits/vector.tcc src/Register.hpp \
- /usr/include/c++/4.9/string /usr/include/c++/4.9/bits/stringfwd.h \
+ /usr/include/c++/4.9/bits/vector.tcc /usr/include/c++/4.9/string \
+ /usr/include/c++/4.9/bits/stringfwd.h \
  /usr/include/c++/4.9/bits/char_traits.h \
  /usr/include/c++/4.9/bits/postypes.h /usr/include/c++/4.9/cwchar \
  /usr/include/wchar.h /usr/include/stdio.h \
@@ -92,8 +92,8 @@ bin/operator/Chi.o: src/operator/Chi.cpp /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
  /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
- /usr/include/c++/4.9/bits/basic_string.tcc /usr/include/c++/4.9/memory \
- /usr/include/c++/4.9/bits/stl_tempbuf.h \
+ /usr/include/c++/4.9/bits/basic_string.tcc src/Register.hpp \
+ /usr/include/c++/4.9/memory /usr/include/c++/4.9/bits/stl_tempbuf.h \
  /usr/include/c++/4.9/bits/stl_raw_storage_iter.h \
  /usr/include/c++/4.9/typeinfo /usr/include/c++/4.9/ext/concurrence.h \
  /usr/include/c++/4.9/bits/uses_allocator.h \

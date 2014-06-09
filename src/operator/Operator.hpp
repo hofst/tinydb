@@ -2,6 +2,7 @@
 #define H_operator_Operator
 //---------------------------------------------------------------------------
 #include <vector>
+#include <string>
 //---------------------------------------------------------------------------
 class Register;
 //---------------------------------------------------------------------------
@@ -27,6 +28,8 @@ class Operator
 
    /// Get all produced values
    virtual std::vector<const Register*> getOutput() const = 0;
+   /// Get one produced value
+   virtual const Register* getOutput(const std::string& name) const = 0;
 };
 //---------------------------------------------------------------------------
 #endif

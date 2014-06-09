@@ -8,7 +8,7 @@ int main() {
 	//			     string("data/uni"));
   
   // c_name=Customer#000014993		c_custkey=14993		o_orderkey=420545
-   auto parser_result = Parser_Result(string("SELECT * FROM lineitem l,orders o,customer c WHERE l.l_orderkey=o.o_orderkey AND o.o_custkey=c.c_custkey AND c.c_name=Customer#000014993"),
+  auto parser_result = Parser_Result(string("SELECT * FROM lineitem l,orders o,customer c WHERE l.l_orderkey=o.o_orderkey AND o.o_custkey=c.c_custkey AND c.c_name=Customer#000014993"),
    				       string("data/tpch/tpch"));
 
   auto query_plan = Query_Plan(parser_result);

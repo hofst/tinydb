@@ -43,3 +43,9 @@ vector<const Register*> Distinct::getOutput() const
    return output;
 }
 //---------------------------------------------------------------------------
+const Register* Distinct::getOutput(const std::string& name) const
+   // Get one produced value
+{
+   return input->getOutput(name);
+}
+//---------------------------------------------------------------------------

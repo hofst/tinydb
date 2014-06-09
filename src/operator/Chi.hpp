@@ -51,6 +51,8 @@ class Chi : public Operator
    const Register* getResult() const { return &output; }
    /// Get all produced values
    std::vector<const Register*> getOutput() const;
+   /// Get one produced value
+   const Register* getOutput(const std::string& name) const;
 };
 //---------------------------------------------------------------------------
 #endif

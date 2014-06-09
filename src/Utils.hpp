@@ -5,9 +5,16 @@
 #include <string>
 #include <assert.h>
 #include <set>
+#include <iterator>
 #include "operator/Operator.hpp"
 
 using namespace std;
+
+int pow(int b, int e) {
+  int result = 1;
+  for (int i=0; i<e; i++) result *= b;
+  return result;
+}
 
 void assertion(bool condition, string explanation="") {
   if (!condition) {
@@ -17,7 +24,14 @@ void assertion(bool condition, string explanation="") {
 }
 
 template<typename T>
-set<T>  intersection(set<T> s1, set<T> s2) {
+T set_at(set<T> s, int i) {
+  auto it = s.begin();
+  advance(it, i);
+  return *it;
+}
+
+template<typename T>
+set<T> intersection(set<T> s1, set<T> s2) {
   set<T> result;
   for (auto _s1 : s1) {
     for (auto _s2 : s2) {
@@ -68,6 +82,41 @@ set<T> merge_sets(set<T> s1, set<T> s2) {
   set<T> result;
   result.insert(s1.begin(), s1.end());
   result.insert(s2.begin(), s2.end());
+  return move(result);
+}
+
+template<typename T>
+set<T> int_to_set(set<T> s, int n) {
+  /* return subset that is binary encoded as int */
+  set<T> result;
+  for (int i = 0; pow(2,i) < n; i++) {
+    if (n & pow(2,i)) {
+      result.insert(set_at(s, i));
+    }
+  }
+  return move(result);
+}
+
+template<typename T>
+set<T> inverse_set(set<T> s, set<T> s1) {
+  /* return subset of s when removing s1 */
+  s.erase(s1.begin(), s1.end());
+  return move(s);
+}
+
+template<typename T>
+set<pair<set<T>, set<T>>> partitions(set<T> s) {
+  /* return all partitions into 2 subsets */
+  set<pair<set<T>, set<T>>> result;
+  
+  if (s.size() > 1) {	// s must contain at least 2 elements or partition won't be possible
+    for (int i = 0; pow(2,i) < int(s.size()-1); i++) {  // avoid empty and full subsets or partition won't be possible
+      auto s1 = int_to_set<T>(s, i);
+      auto s2 = inverse_set<T>(s, s1);
+      result.insert(pair<set<T>, set<T>>(s1,s2));
+    }
+  }
+  
   return move(result);
 }
 

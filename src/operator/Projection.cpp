@@ -37,3 +37,9 @@ vector<const Register*> Projection::getOutput() const
    return output;
 }
 //---------------------------------------------------------------------------
+const Register* Projection::getOutput(const std::string& name) const
+   // Get one produced value
+{
+   return input->getOutput(name);
+}
+//---------------------------------------------------------------------------

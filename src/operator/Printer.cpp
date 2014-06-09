@@ -61,3 +61,9 @@ vector<const Register*> Printer::getOutput() const
    return input->getOutput();
 }
 //---------------------------------------------------------------------------
+const Register* Printer::getOutput(const std::string& name) const
+   // Get one produced value
+{
+   return input->getOutput(name);
+}
+//---------------------------------------------------------------------------

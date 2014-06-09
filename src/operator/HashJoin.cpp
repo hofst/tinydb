@@ -81,3 +81,10 @@ vector<const Register*> HashJoin::getOutput() const
    return result;
 }
 //---------------------------------------------------------------------------
+const Register* HashJoin::getOutput(const std::string& name) const
+   // Get one produced value
+{
+  if (left->getOutput(name)) return left->getOutput(name);
+  return right->getOutput(name);
+}
+//---------------------------------------------------------------------------

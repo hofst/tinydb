@@ -10,53 +10,47 @@
 #include "operator/Operator.hpp"
 #include "operator/CrossProduct.hpp"
 #include "operator/HashJoin.hpp"
-#include "Query_Plan.hpp"
 
 using namespace std;
 
 struct Join_Graph_Node {
-  int size;
-  string repr;
+  shared_ptr<Parser_Result> parser_result;
+  shared_ptr<Database> db;
   
-  Query_Plan* query_plan;
+  int s;  // cached size
   
-  Join_Graph_Node(Query_Plan* query_plan)
-  : query_plan(query_plan), size(-1) {
-    set_size();
-    repr = representation();
-  };
+  Join_Graph_Node(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db)
+  : parser_result(parser_result), db(db), s(-1) {};
     
   void print(int depth=0) {
     if (depth == 0) cout << endl << "***** Printing Join Graph *****" << endl;
     
     for (int i=0; i < depth; i++) cout << "\t";
     
-    cout << type_str() << ": " << set_representation(aliases) << " (size:" << size << ")" << "   [" << this << "]" << endl;
+    cout << type_str() << ": " << set_representation(aliases()) << " (size:" << get_size() << ")" << "   [" << this << "]" << endl;
     
     print_rec();
   }
   
   bool operator<(const Join_Graph_Node& n2) const {
-    if (size < n2.size) {
-      return true;
-    } else {
-      return repr < n2.repr;
-    }
+      return this < &n2 ;
   }
   
   string aliases_str() {
-   return set_representation(aliases); 
+   return set_representation(aliases()); 
   }
   
   void output_result() {
     cout << endl << "***** Running Query: *****" << endl;
     
+    auto table = get_table();
+    
     // Apply Projections
     vector<const Register*> selected_registers;
-    for (auto attr : query_plan->parser_result.selected_attributes) {
-	selected_registers.push_back(query_plan->attr_to_register[attr]);
+    for (auto attr : parser_result->selected_attributes) {
+	selected_registers.push_back(table->getOutput(parser_result->alias_to_relation[attr.alias]));
     }
-    Printer out (get_table(), selected_registers);
+    Printer out (move(table), selected_registers);
 
     // Print Result
     out.open();
@@ -64,91 +58,91 @@ struct Join_Graph_Node {
     out.close();
   }
   
-  virtual void set_size() {
-    if (size == -1) size = get_table()->size();
+  int get_size() {
+    if (s == -1) s = get_table()->size();
+    return s;
   }
   
-  virtual set<string> aliases();
+  virtual set<string> aliases() = 0;
   
-  virtual void print_rec(int depth=0);
+  virtual void print_rec(int depth=0) = 0;
   
-  virtual string representation();
+  virtual string representation() = 0;
   
-  virtual string type_str();
+  virtual string type_str() = 0;
   
-  virtual unique_ptr<Operator> get_table();
+  virtual unique_ptr<Operator> get_table() = 0;
 };
 
 struct LEAF:Join_Graph_Node {
   string alias;
   
-  LEAF(Query_Plan* query_plan, string alias) : alias(alias){
-    Join_Graph_Node(query_plan);
+  LEAF(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db, string alias) : Join_Graph_Node(parser_result, db), alias(alias) {}
+  
+  unique_ptr<Operator> get_table() {
+    return unique_ptr<Operator> (new Tablescan(db->getTable(parser_result->alias_to_relation[alias])));
   }
   
-  virtual unique_ptr<Tablescan> get_table() {
-    return unique_ptr<Tablescan> (new Tablescan(query_plan->db->getTable(query_plan->parser_result.alias_to_relation[alias])));
-  }
-  
-  virtual set<string> aliases() {
+  set<string> aliases() {
       return {alias};
   }
   
-  virtual void print_rec(int depth=0) {}
+  void print_rec(int depth=0) {if (depth<0) assertion(false);}
   
-  virtual string representation() {return set_representation(aliases);}
+  string representation() {return set_representation(aliases());}
   
-  virtual string type_str() {return "LEAF";}
+  string type_str() {return "LEAF";}
 };
 
 struct SELECT:Join_Graph_Node {
   shared_ptr<Join_Graph_Node> child;
   
-  SELECT(Query_Plan* query_plan, shared_ptr<Join_Graph_Node> child) : child(child) {
-    Join_Graph_Node(query_plan);
-  }
+  SELECT(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db, shared_ptr<Join_Graph_Node> child) : Join_Graph_Node(parser_result, db), child(child) {}
   
-  virtual set<string> aliases() {
+  set<string> aliases() {
       return child->aliases();
   }
   
-  virtual void print_rec(int depth=0) {
-    left->print(depth+1);
+  void print_rec(int depth=0) {
+    child->print(depth+1);
   }
   
-  virtual string representation() {return "#(" + left->representation() + ")";}
+  string representation() {return "#(" + child->representation() + ")";}
   
-  virtual string type_str() {return "SELECT";}
+  string type_str() {return "SELECT";}
 };
 
 struct CSELECT:SELECT {
   Constant_Binding binding;
   
-  CSELECT(Query_Plan* query_plan, shared_ptr<Join_Graph_Node> child, Constant_Binding binding) : binding(binding) {
-    SELECT(query_plan, child);
-  }
+  CSELECT(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db, shared_ptr<Join_Graph_Node> child, Constant_Binding binding) : SELECT(parser_result, db, child), binding(binding) {}
   
-  virtual unique_ptr<Selection> get_table() {
+  unique_ptr<Operator> get_table() {
+      auto child_table = child->get_table();
+      auto reg1 = child_table->getOutput(parser_result->alias_to_relation[binding.attr.alias]);
+      auto reg2 = new Register(binding.constant);
+    
       unique_ptr<Chi> filter(new Chi(
-	move(child->get_table()),
+	move(child_table),
 	Chi::Equal,
-	query_plan->attr_to_register[binding.attr],
-	&query_plan->equal_constant_registers[binding.constant]));
+	reg1,
+	reg2));
       
       const Register* filtered_register=filter->getResult();
-      return unique_ptr<Selection> (new Selection(move(filter),filtered_register));  
+      return unique_ptr<Operator> (new Selection(move(filter),filtered_register));  
   }
 };
 
 struct ASELECT:SELECT {
   Attr_Binding binding;
   
-  ASELECT(Query_Plan* query_plan, shared_ptr<Join_Graph_Node> child, Attr_Binding binding) : binding(binding) {
-    SELECT(query_plan, child);
-  }
+  ASELECT(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db, shared_ptr<Join_Graph_Node> child, Attr_Binding binding) : SELECT(parser_result, db, child), binding(binding) {}
   
-  virtual unique_ptr<Selection> get_table() {
-      return unique_ptr<Selection> (new Selection(move(child->get_table()), query_plan->attr_to_register[binding.attr1], query_plan->attr_to_register[binding.attr2]));
+  unique_ptr<Operator> get_table() {
+      auto child_table = child->get_table();
+      auto reg1 = child_table->getOutput(parser_result->alias_to_relation[binding.attr1.alias]);
+      auto reg2 = child_table->getOutput(parser_result->alias_to_relation[binding.attr2.alias]);
+      return unique_ptr<Operator> (new Selection(move(child_table), reg1, reg2));
   }
 };
 
@@ -156,49 +150,50 @@ struct CROSSPRODUCT:Join_Graph_Node {
   shared_ptr<Join_Graph_Node> child;
   shared_ptr<Join_Graph_Node> child2;
   
-  CROSSPRODUCT(Query_Plan* query_plan, shared_ptr<Join_Graph_Node> child, shared_ptr<Join_Graph_Node> child2) : child(child), child2(child2) {
-    Join_Graph_Node(query_plan);
-  }
+  CROSSPRODUCT(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db, shared_ptr<Join_Graph_Node> child, shared_ptr<Join_Graph_Node> child2) : Join_Graph_Node(parser_result, db), child(child), child2(child2) {}
   
-  virtual unique_ptr<CrossProduct> get_table() {
+  unique_ptr<Operator> get_table() {
     return unique_ptr<Operator>(new CrossProduct(move(child->get_table()), move(child2->get_table())));
   }
   
-  virtual set<string> aliases() {
+  set<string> aliases() {
       auto aliases1 = child->aliases();
       auto aliases2 = child2->aliases();
       aliases1.insert(aliases2.begin(), aliases2.end());
       return aliases1;
   }
   
-  virtual void print_rec(int depth=0) {
-    left->print(depth+1);
-    right->print(depth+1);
+  void print_rec(int depth=0) {
+    child->print(depth+1);
+    child2->print(depth+1);
   }
   
-  virtual void set_size() {
-    if (size == -1) size = child->size * child2->size; 
+  int get_size() {
+    if (s == -1) s = child->get_size() * child2->get_size();
+    return s;
   }
         
-  virtual string representation() {return left->representation() + "x" + right->representation();}
+  string representation() {return child->representation() + "x" + child2->representation();}
   
-  virtual string type_str() {return "CROSSPRODUCT";}
+  string type_str() {return "CROSSPRODUCT";}
 };
 
 struct HASHJOIN:CROSSPRODUCT {
-  Attr_Binding attr_binding;
+  Attr_Binding binding;
   
-  HASHJOIN(Query_Plan* query_plan, shared_ptr<Join_Graph_Node> child, shared_ptr<Join_Graph_Node> child2, Attr_Binding attr_binding) : attr_binding(attr_binding) {
-    CROSSPRODUCT(query_plan, child, child2);
+  HASHJOIN(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db, shared_ptr<Join_Graph_Node> child, shared_ptr<Join_Graph_Node> child2, Attr_Binding binding) : CROSSPRODUCT(parser_result, db, child, child2), binding(binding) {}
+  
+  unique_ptr<Operator> get_table() {
+    auto child_table1 = child->get_table();
+    auto child_table2 = child->get_table();
+    auto reg1 = child_table1->getOutput(parser_result->alias_to_relation[binding.attr1.alias]);
+    auto reg2 = child_table2->getOutput(parser_result->alias_to_relation[binding.attr2.alias]);
+    return unique_ptr<Operator>(new HashJoin(move(child_table1), move(child_table2), reg1, reg2));
   }
   
-  virtual unique_ptr<HashJoin> get_table() {
-    return unique_ptr<Operator>(new HashJoin(move(child->get_table()), move(child2->get_table()), query_plan->attr_to_register[attr_binding.attr1], query_plan->attr_to_register[attr_binding.attr2]));
-  }
+  string representation() {return child->representation() + " |x| " + child2->representation();}
   
-  virtual string representation() {return left->representation() + " |x| " + right->representation();}
-  
-  virtual string type_str() {return "HASHJOIN";}
+  string type_str() {return "HASHJOIN";}
 };
 
 #endif

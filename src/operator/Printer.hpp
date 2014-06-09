@@ -28,6 +28,8 @@ class Printer : public Operator
 
    /// Get all produced values
    std::vector<const Register*> getOutput() const;
+   /// Get one produced value
+   const Register* getOutput(const std::string& name) const;
 };
 //---------------------------------------------------------------------------
 #endif

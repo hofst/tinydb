@@ -41,8 +41,7 @@ bin/operator/Indexscan.o: src/operator/Indexscan.cpp \
  /usr/include/c++/4.9/bits/functional_hash.h \
  /usr/include/c++/4.9/bits/hash_bytes.h \
  /usr/include/c++/4.9/bits/range_access.h \
- /usr/include/c++/4.9/bits/vector.tcc src/Table.hpp src/Attribute.hpp \
- src/Register.hpp /usr/include/c++/4.9/string \
+ /usr/include/c++/4.9/bits/vector.tcc /usr/include/c++/4.9/string \
  /usr/include/c++/4.9/bits/stringfwd.h \
  /usr/include/c++/4.9/bits/char_traits.h \
  /usr/include/c++/4.9/bits/postypes.h /usr/include/c++/4.9/cwchar \
@@ -94,7 +93,8 @@ bin/operator/Indexscan.o: src/operator/Indexscan.cpp \
  /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
  /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
- /usr/include/c++/4.9/bits/basic_string.tcc /usr/include/c++/4.9/iostream \
+ /usr/include/c++/4.9/bits/basic_string.tcc src/Table.hpp \
+ src/Attribute.hpp src/Register.hpp /usr/include/c++/4.9/iostream \
  /usr/include/c++/4.9/ostream /usr/include/c++/4.9/ios \
  /usr/include/c++/4.9/bits/ios_base.h \
  /usr/include/c++/4.9/bits/locale_classes.h \

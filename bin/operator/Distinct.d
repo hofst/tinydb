@@ -41,48 +41,41 @@ bin/operator/Distinct.o: src/operator/Distinct.cpp \
  /usr/include/c++/4.9/bits/functional_hash.h \
  /usr/include/c++/4.9/bits/hash_bytes.h \
  /usr/include/c++/4.9/bits/range_access.h \
- /usr/include/c++/4.9/bits/vector.tcc /usr/include/c++/4.9/memory \
- /usr/include/c++/4.9/bits/stl_tempbuf.h \
- /usr/include/c++/4.9/bits/stl_raw_storage_iter.h \
- /usr/include/c++/4.9/typeinfo /usr/include/c++/4.9/iosfwd \
+ /usr/include/c++/4.9/bits/vector.tcc /usr/include/c++/4.9/string \
  /usr/include/c++/4.9/bits/stringfwd.h \
+ /usr/include/c++/4.9/bits/char_traits.h \
  /usr/include/c++/4.9/bits/postypes.h /usr/include/c++/4.9/cwchar \
  /usr/include/wchar.h /usr/include/stdio.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.9/include/stdarg.h \
  /usr/include/x86_64-linux-gnu/bits/wchar.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.9/include/stddef.h \
- /usr/include/xlocale.h /usr/include/c++/4.9/ext/atomicity.h \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/gthr.h \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/gthr-default.h \
- /usr/include/pthread.h /usr/include/endian.h \
+ /usr/include/xlocale.h /usr/include/c++/4.9/cstdint \
+ /usr/lib/gcc/x86_64-linux-gnu/4.9/include/stdint.h /usr/include/stdint.h \
+ /usr/include/c++/4.9/bits/localefwd.h \
+ /usr/include/x86_64-linux-gnu/c++/4.9/bits/c++locale.h \
+ /usr/include/c++/4.9/clocale /usr/include/locale.h \
+ /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/4.9/iosfwd \
+ /usr/include/c++/4.9/cctype /usr/include/ctype.h \
+ /usr/include/x86_64-linux-gnu/bits/types.h \
+ /usr/include/x86_64-linux-gnu/bits/typesizes.h /usr/include/endian.h \
  /usr/include/x86_64-linux-gnu/bits/endian.h \
  /usr/include/x86_64-linux-gnu/bits/byteswap.h \
- /usr/include/x86_64-linux-gnu/bits/types.h \
- /usr/include/x86_64-linux-gnu/bits/typesizes.h \
- /usr/include/x86_64-linux-gnu/bits/byteswap-16.h /usr/include/sched.h \
- /usr/include/time.h /usr/include/x86_64-linux-gnu/bits/sched.h \
+ /usr/include/x86_64-linux-gnu/bits/byteswap-16.h \
+ /usr/include/c++/4.9/bits/ostream_insert.h \
+ /usr/include/c++/4.9/bits/cxxabi_forced.h \
+ /usr/include/c++/4.9/bits/stl_function.h \
+ /usr/include/c++/4.9/backward/binders.h \
+ /usr/include/c++/4.9/bits/basic_string.h \
+ /usr/include/c++/4.9/ext/atomicity.h \
+ /usr/include/x86_64-linux-gnu/c++/4.9/bits/gthr.h \
+ /usr/include/x86_64-linux-gnu/c++/4.9/bits/gthr-default.h \
+ /usr/include/pthread.h /usr/include/sched.h /usr/include/time.h \
+ /usr/include/x86_64-linux-gnu/bits/sched.h \
  /usr/include/x86_64-linux-gnu/bits/time.h \
  /usr/include/x86_64-linux-gnu/bits/timex.h \
  /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h \
  /usr/include/x86_64-linux-gnu/bits/setjmp.h \
  /usr/include/x86_64-linux-gnu/c++/4.9/bits/atomic_word.h \
- /usr/include/c++/4.9/ext/concurrence.h \
- /usr/include/c++/4.9/bits/stl_function.h \
- /usr/include/c++/4.9/backward/binders.h \
- /usr/include/c++/4.9/bits/uses_allocator.h \
- /usr/include/c++/4.9/functional /usr/include/c++/4.9/tuple \
- /usr/include/c++/4.9/utility /usr/include/c++/4.9/bits/stl_relops.h \
- /usr/include/c++/4.9/array /usr/include/c++/4.9/stdexcept \
- /usr/include/c++/4.9/string /usr/include/c++/4.9/bits/char_traits.h \
- /usr/include/c++/4.9/cstdint \
- /usr/lib/gcc/x86_64-linux-gnu/4.9/include/stdint.h /usr/include/stdint.h \
- /usr/include/c++/4.9/bits/localefwd.h \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/c++locale.h \
- /usr/include/c++/4.9/clocale /usr/include/locale.h \
- /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/4.9/cctype \
- /usr/include/ctype.h /usr/include/c++/4.9/bits/ostream_insert.h \
- /usr/include/c++/4.9/bits/cxxabi_forced.h \
- /usr/include/c++/4.9/bits/basic_string.h \
  /usr/include/c++/4.9/ext/string_conversions.h \
  /usr/include/c++/4.9/cstdlib /usr/include/stdlib.h \
  /usr/include/x86_64-linux-gnu/bits/waitflags.h \
@@ -100,7 +93,14 @@ bin/operator/Distinct.o: src/operator/Distinct.cpp \
  /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
  /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
- /usr/include/c++/4.9/bits/basic_string.tcc \
+ /usr/include/c++/4.9/bits/basic_string.tcc /usr/include/c++/4.9/memory \
+ /usr/include/c++/4.9/bits/stl_tempbuf.h \
+ /usr/include/c++/4.9/bits/stl_raw_storage_iter.h \
+ /usr/include/c++/4.9/typeinfo /usr/include/c++/4.9/ext/concurrence.h \
+ /usr/include/c++/4.9/bits/uses_allocator.h \
+ /usr/include/c++/4.9/functional /usr/include/c++/4.9/tuple \
+ /usr/include/c++/4.9/utility /usr/include/c++/4.9/bits/stl_relops.h \
+ /usr/include/c++/4.9/array /usr/include/c++/4.9/stdexcept \
  /usr/include/c++/4.9/bits/unique_ptr.h \
  /usr/include/c++/4.9/bits/shared_ptr.h \
  /usr/include/c++/4.9/bits/shared_ptr_base.h \
