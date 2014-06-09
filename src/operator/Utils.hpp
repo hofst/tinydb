@@ -5,6 +5,7 @@
 #include <string>
 #include <assert.h>
 #include <set>
+#include <math.h> 
 
 using namespace std;
 
@@ -37,6 +38,28 @@ set<pair<T,T>>  all_pairs_in_set(set<T> s) {
       result.insert(move(pair<T,T>(_s1,_s2)));
     }
   }
+  return move(result);
+}
+
+template<typename T>
+set<T> int_to_set(set<T> s, unsigned n) {
+  /* return subset that is binary encoded as int */
+  set<T> result;
+  for (int i = 0; pow(2,i) < n; i++) {
+    if (n & pow(2^i)) {
+      result.insert(s[i]);
+    }
+  }
+  return move(result);
+}
+
+template<typename T>
+set<pair<set<T>, set<T>>> partitions(set<T> s) {
+  /* return all partitions into 2 subsets */
+  set<pair<set<T>, set<T>>> result;
+  
+  
+  
   return move(result);
 }
 

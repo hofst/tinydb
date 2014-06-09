@@ -24,81 +24,32 @@
 struct Query_Plan {
   Parser_Result parser_result;
   map<string, shared_ptr<Join_Graph_Node>> join_graph_leaves;
-  set<shared_ptr<Join_Graph_Node>> join_graph_roots;
-  
-  map<Attr, const Register*> attr_to_register;
-  map<string, Register> equal_constant_registers;
-  
   unique_ptr<Database> db;
-  
-  unique_ptr<Operator> result;
+
   
   Query_Plan(Parser_Result parser_result) : parser_result(parser_result), db(unique_ptr<Database>(new Database)) {
     db->open(parser_result.db);
     
-    init_join_tree();
+    init_join_graph_leaves();
   }
   
-  void init_join_tree () {
+  void init_join_graph_leaves () {
     /* Inits the join tree and applies pushed down selections */
     
-    cout << endl << "***** Applying pushed down selections *****" << endl;
-    
-    // Create TableScans
-    map<string, unique_ptr<Tablescan>> alias_to_tables;
-    for (string alias : parser_result.aliases) {
-      alias_to_tables[alias] = unique_ptr<Tablescan> (new Tablescan(db->getTable(parser_result.alias_to_relation[alias])));
-    }
-    
-    // Create Registers
-    for (Attr attr : parser_result.attributes) {
-      attr_to_register[attr] = alias_to_tables[attr.alias]->getOutput(attr.name);
-    }
-    
-    // Constant Bindings
+    cout << endl << "***** Initializing Join Graph Leaves and pushing down Selections *****" << endl;
+
+    // Create Leaves
     for (auto alias : parser_result.aliases) {
       set<string> aliases {alias};
-      shared_ptr<Join_Graph_Node> leaf(new Join_Graph_Node(move(alias_to_tables[alias]), aliases, Node_Type::LEAF));
-      join_graph_leaves[alias] = leaf;
+      join_graph_leaves[alias] = shared_ptr<Join_Graph_Node>(new LEAF(this, aliases));
     }
-    
+  
+    // Push down selections
     for (auto& binding : parser_result.constant_bindings) {
-      equal_constant_registers[binding.constant] = Register(binding.constant);
-      
-      unique_ptr<Chi> filter(new Chi(
-	move(join_graph_leaves[binding.attr.alias]->table),
-	Chi::Equal,
-	attr_to_register[binding.attr],
-	&equal_constant_registers[binding.constant]));
-      
-      const Register* filtered_register=filter->getResult();
-      join_graph_leaves[binding.attr.alias]->table = unique_ptr<Selection> (new Selection(move(filter),filtered_register));  
-    }
-    
-    // At the beginning: leaves = join_graph_roots
-    for (auto leaf : join_graph_leaves) {
-      join_graph_roots.insert(leaf.second); 
+      join_graph_leaves[binding.attr.alias] = shared_ptr<Join_Graph_Node>(new CSELECT(this, aliases));
     }
   }
      
-  void output_result() {
-    cout << endl << "***** Running Query: *****" << endl;
-    
-    assertion(!!result, "No Query-Plan existing. Cannot output result until algorithm (like GOO) was applied");
-    
-    // Apply Projections
-    vector<const Register*> selected_registers;
-    for (auto attr : parser_result.selected_attributes) {
-	selected_registers.push_back(attr_to_register[attr]);
-    }
-    Printer out (move(result), selected_registers);
-
-    // Print Result
-    out.open();
-    while (out.next());
-    out.close();
-  }
-  
   shared_ptr<Join_Graph_Node> join(shared_ptr<Join_Graph_Node> n1, shared_ptr<Join_Graph_Node> n2) {
     auto attr_bindings = parser_result.find_attr_bindings(n1->aliases, n2->aliases);
     
@@ -129,47 +80,35 @@ struct Query_Plan {
     return n;
   }
   
-   int join_test(shared_ptr<Join_Graph_Node> n1, shared_ptr<Join_Graph_Node> n2, int threshold=-1) {
-    // Crossproduct
-    unique_ptr<Operator> table (new CrossProduct(move(n1->table), move(n2->table)));
-    int select_counter = 0, table_size = 0;
-    
-    // Selects
-    auto attr_bindings = parser_result.find_attr_bindings(n1->aliases, n2->aliases); 
-    for (auto binding : attr_bindings) {
-      select_counter++;
-      unique_ptr<Selection> selection (new Selection(move(table),attr_to_register[binding.attr1], attr_to_register[binding.attr2]));
-      table = move(selection);
-    }
-    
-    if (select_counter) {
-      // it is a join
-      table_size = table->size(threshold);
-    } else {
-      // it is a cross product and we can calcualte the size
-      table_size = n1->size * n2->size;
-    }
-    
-    // Unjoin
-    unjoin(n1, n2, move(table), select_counter);
-    
-    return table_size;
-  }
-  
-  void unjoin(shared_ptr<Join_Graph_Node> n1, shared_ptr<Join_Graph_Node> n2, unique_ptr<Operator> table, int select_counter) {    
-    // Before reverting the underlying crossproduct, revert all selects
-    for (;select_counter > 0; select_counter--) {
-     shared_ptr<Operator> _n (move(table));
-     table = move(static_pointer_cast<Selection>(_n)->input);
-    }
-    // now all selects are reverted and there must be a crossproduct
-    shared_ptr<Operator> _n (move(table));
-    
-    n1->table = move(static_pointer_cast<CrossProduct>(_n)->left);
-    n2->table = move(static_pointer_cast<CrossProduct>(_n)->right);
+  void cp_sub() {
+    cout << endl << "***** Creating cp_sub Query Plan *****" << endl; 
+      map<string, shared_ptr<Join_Graph_Node>> B;
+      auto R = parser_result.aliases;
+      
+      for (int i=1; i<R.size) {
+	auto S = int_to_set(parser_result.aliases, i);
+	for (auto p : partitions(S)) {
+	  S1 = p.first;
+	  S2 = p.second;
+	  p1 = B[set_representation(S1)];
+	  p2 = B[set_representation(S2)];
+	  auto P = join(p1, p2);
+	  if (B.find(S) == B.end() || B[set_representation(S)].size > P.size) {
+	    B[set_representation(S)] = P;
+	  }
+	}
+      }
+      
+      /* Print B */
+      cout << "DP Table:" << endl; 
+      for (auto b : B) {
+	cout << b.first << b.second->representation() << " [" << b.second->size << "]" << endl;
+      }
+      
+      return B[set_representation(R)];
   }
     
-  void apply_goo() {
+  void goo() {
     cout << endl << "***** Creating GOO Query Plan with Crossproducts *****" << endl;  
        
     while (join_graph_roots.size() > 1) {
@@ -198,7 +137,7 @@ struct Query_Plan {
     result = move(get_join_graph()->table);
   }
   
-  void apply_canonical_optimized() {
+  void canonical_optimized() {
     cout << endl << "***** Creating Logically Optimized Canonical Query Plan *****" << endl;
     
     while (join_graph_roots.size() > 1) {
@@ -206,10 +145,6 @@ struct Query_Plan {
     }
     
     result = move(get_join_graph()->table);
-  }
-  
-  shared_ptr<Join_Graph_Node> get_join_graph() {
-      return *join_graph_roots.begin();
   }
 };
 
