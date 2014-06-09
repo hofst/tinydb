@@ -3,7 +3,7 @@
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
-Indexscan::Indexscan(Table& table,unsigned indexAttribute,const Register* lowerBound,const Register* upperBound)
+Indexscan::Indexscan(Table& table,unsigned indexAttribute,shared_ptr<Register> lowerBound,shared_ptr<Register> upperBound)
    : table(table),index(table.indices[indexAttribute]),lowerBound(lowerBound),upperBound(upperBound)
    // Constructor
 {
@@ -65,12 +65,12 @@ bool Indexscan::next()
          if (escape) { escape=false; buf+=c; continue; }
          if (c=='\r') continue;
          if ((c==';')||(c=='\n')) {
-            Register& r=output[index];
+            auto r=output[index];
             switch (table.attributes[index].getType()) {
-               case Attribute::Type::Int: r.setInt(atoi(buf.c_str())); break;
-               case Attribute::Type::Double: r.setDouble(atof(buf.c_str())); break;
-               case Attribute::Type::Bool: r.setBool(buf=="true"); break;
-               case Attribute::Type::String: r.setString(buf); break;
+               case Attribute::Type::Int: r->setInt(atoi(buf.c_str())); break;
+               case Attribute::Type::Double: r->setDouble(atof(buf.c_str())); break;
+               case Attribute::Type::Bool: r->setBool(buf=="true"); break;
+               case Attribute::Type::String: r->setString(buf); break;
             }
             break;
          } else if (c=='\\') {
@@ -86,16 +86,16 @@ void Indexscan::close()
 {
 }
 //---------------------------------------------------------------------------
-vector<const Register*> Indexscan::getOutput() const
+vector<shared_ptr<Register>> Indexscan::getOutput() const
    // Get all produced values
 {
-   vector<const Register*> result;
+   vector<shared_ptr<Register>> result;
    for (auto iter=output.begin(),limit=output.end();iter!=limit;++iter)
-      result.push_back(&(*iter));
+      result.push_back(*iter);
    return result;
 }
 //---------------------------------------------------------------------------
-const Register* Indexscan::getOutput(const std::string& name) const
+shared_ptr<Register> Indexscan::getOutput(const std::string& name) const
    // Get one produced value
 {
    return getOutput()[0];

@@ -120,7 +120,6 @@ bin/examples/SelectExample.o: examples/SelectExample.cpp \
  /usr/include/c++/4.9/bits/stl_vector.h \
  /usr/include/c++/4.9/bits/stl_bvector.h \
  /usr/include/c++/4.9/bits/vector.tcc src/operator/Tablescan.hpp \
- src/operator/Operator.hpp src/operator/Selection.hpp \
  src/operator/Operator.hpp /usr/include/c++/4.9/memory \
  /usr/include/c++/4.9/bits/stl_tempbuf.h \
  /usr/include/c++/4.9/bits/stl_raw_storage_iter.h \
@@ -128,4 +127,5 @@ bin/examples/SelectExample.o: examples/SelectExample.cpp \
  /usr/include/c++/4.9/functional /usr/include/c++/4.9/bits/unique_ptr.h \
  /usr/include/c++/4.9/bits/shared_ptr.h \
  /usr/include/c++/4.9/bits/shared_ptr_base.h \
- /usr/include/c++/4.9/backward/auto_ptr.h
+ /usr/include/c++/4.9/backward/auto_ptr.h src/operator/Selection.hpp \
+ src/operator/Operator.hpp

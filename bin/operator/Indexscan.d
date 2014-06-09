@@ -93,8 +93,20 @@ bin/operator/Indexscan.o: src/operator/Indexscan.cpp \
  /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
  /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
- /usr/include/c++/4.9/bits/basic_string.tcc src/Table.hpp \
- src/Attribute.hpp src/Register.hpp /usr/include/c++/4.9/iostream \
+ /usr/include/c++/4.9/bits/basic_string.tcc /usr/include/c++/4.9/memory \
+ /usr/include/c++/4.9/bits/stl_tempbuf.h \
+ /usr/include/c++/4.9/bits/stl_raw_storage_iter.h \
+ /usr/include/c++/4.9/typeinfo /usr/include/c++/4.9/ext/concurrence.h \
+ /usr/include/c++/4.9/bits/uses_allocator.h \
+ /usr/include/c++/4.9/functional /usr/include/c++/4.9/tuple \
+ /usr/include/c++/4.9/utility /usr/include/c++/4.9/bits/stl_relops.h \
+ /usr/include/c++/4.9/array /usr/include/c++/4.9/stdexcept \
+ /usr/include/c++/4.9/bits/unique_ptr.h \
+ /usr/include/c++/4.9/bits/shared_ptr.h \
+ /usr/include/c++/4.9/bits/shared_ptr_base.h \
+ /usr/include/c++/4.9/ext/aligned_buffer.h \
+ /usr/include/c++/4.9/backward/auto_ptr.h src/Table.hpp src/Attribute.hpp \
+ src/Register.hpp /usr/include/c++/4.9/iostream \
  /usr/include/c++/4.9/ostream /usr/include/c++/4.9/ios \
  /usr/include/c++/4.9/bits/ios_base.h \
  /usr/include/c++/4.9/bits/locale_classes.h \
@@ -114,10 +126,5 @@ bin/operator/Indexscan.o: src/operator/Indexscan.cpp \
  /usr/include/x86_64-linux-gnu/c++/4.9/bits/basic_file.h \
  /usr/include/x86_64-linux-gnu/c++/4.9/bits/c++io.h \
  /usr/include/c++/4.9/bits/fstream.tcc /usr/include/c++/4.9/map \
- /usr/include/c++/4.9/bits/stl_tree.h \
- /usr/include/c++/4.9/ext/aligned_buffer.h \
- /usr/include/c++/4.9/bits/stl_map.h /usr/include/c++/4.9/tuple \
- /usr/include/c++/4.9/utility /usr/include/c++/4.9/bits/stl_relops.h \
- /usr/include/c++/4.9/array /usr/include/c++/4.9/stdexcept \
- /usr/include/c++/4.9/bits/uses_allocator.h \
+ /usr/include/c++/4.9/bits/stl_tree.h /usr/include/c++/4.9/bits/stl_map.h \
  /usr/include/c++/4.9/bits/stl_multimap.h

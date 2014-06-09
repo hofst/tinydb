@@ -9,15 +9,15 @@ class Printer : public Operator
 {
    private:
    /// The input
-   std::unique_ptr<Operator> input;
+   shared_ptr<Operator> input;
    /// Registers to print
-   std::vector<const Register*> toPrint;
+   vector<shared_ptr<Register>> toPrint;
 
    public:
    /// Constructor
-   explicit Printer(std::unique_ptr<Operator>&& input);
+   explicit Printer(shared_ptr<Operator> input);
    /// Constructor
-   Printer(std::unique_ptr<Operator>&& input,const std::vector<const Register*>& toPrint);
+   Printer(shared_ptr<Operator> input, vector<shared_ptr<Register>> toPrint);
 
    /// Open the operator
    void open();
@@ -27,9 +27,9 @@ class Printer : public Operator
    void close();
 
    /// Get all produced values
-   std::vector<const Register*> getOutput() const;
+   vector<shared_ptr<Register>> getOutput() const;
    /// Get one produced value
-   const Register* getOutput(const std::string& name) const;
+   shared_ptr<Register> getOutput(const string& name) const;
 };
 //---------------------------------------------------------------------------
 #endif

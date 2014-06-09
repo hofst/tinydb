@@ -2,13 +2,13 @@
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
-HashJoin::HashJoin(std::unique_ptr<Operator>&& left,std::unique_ptr<Operator>&& right,const Register* leftValue,const Register* rightValue)
-   : left(move(left)),right(move(right)),leftValue(leftValue),rightValue(rightValue)
+HashJoin::HashJoin(shared_ptr<Operator> left, shared_ptr<Operator> right, shared_ptr<Register> leftValue, shared_ptr<Register> rightValue)
+   : left(left),right(right),leftValue(leftValue),rightValue(rightValue)
    // Constructor
 {
-   vector<const Register*> lr(this->left->getOutput());
+   vector<shared_ptr<Register>> lr = this->left->getOutput();
    for (auto iter=lr.begin(),limit=lr.end();iter!=limit;++iter)
-      leftRegs.push_back(const_cast<Register*>(*iter));
+      leftRegs.push_back(*iter);
 }
 //---------------------------------------------------------------------------
 HashJoin::~HashJoin()
@@ -72,16 +72,16 @@ void HashJoin::close()
    left->close();
 }
 //---------------------------------------------------------------------------
-vector<const Register*> HashJoin::getOutput() const
+vector<shared_ptr<Register>> HashJoin::getOutput() const
    // Get all produced values
 {
-   vector<const Register*> result=left->getOutput(),other=right->getOutput();
+   auto result=left->getOutput(),other=right->getOutput();
    for (auto iter=other.begin(),limit=other.end();iter!=limit;++iter)
       result.push_back(*iter);
    return result;
 }
 //---------------------------------------------------------------------------
-const Register* HashJoin::getOutput(const std::string& name) const
+shared_ptr<Register> HashJoin::getOutput(const std::string& name) const
    // Get one produced value
 {
   if (left->getOutput(name)) return left->getOutput(name);

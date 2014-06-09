@@ -2,8 +2,8 @@
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
-Projection::Projection(unique_ptr<Operator>&& input,const vector<const Register*>& output)
-   : input(move(input)),output(output)
+Projection::Projection(shared_ptr<Operator> input,vector<shared_ptr<Register>> output)
+   : input(input),output(output)
    // Constructor
 {
 }
@@ -31,13 +31,13 @@ void Projection::close()
    input->close();
 }
 //---------------------------------------------------------------------------
-vector<const Register*> Projection::getOutput() const
+vector<shared_ptr<Register>> Projection::getOutput() const
    // Get all produced values
 {
    return output;
 }
 //---------------------------------------------------------------------------
-const Register* Projection::getOutput(const std::string& name) const
+shared_ptr<Register> Projection::getOutput(const std::string& name) const
    // Get one produced value
 {
    return input->getOutput(name);

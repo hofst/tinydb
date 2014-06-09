@@ -18,10 +18,10 @@ int main()
    unique_ptr<Tablescan> scanProfessoren(new Tablescan(professoren));
    unique_ptr<Tablescan> scanVorlesungen(new Tablescan(vorlesungen));
 
-   const Register* name=scanProfessoren->getOutput("name");
-   const Register* persnr=scanProfessoren->getOutput("persnr");
-   const Register* titel=scanVorlesungen->getOutput("titel");
-   const Register* gelesenvon=scanVorlesungen->getOutput("gelesenvon");
+   shared_ptr<Register> name=scanProfessoren->getOutput("name");
+   shared_ptr<Register> persnr=scanProfessoren->getOutput("persnr");
+   shared_ptr<Register> titel=scanVorlesungen->getOutput("titel");
+   shared_ptr<Register> gelesenvon=scanVorlesungen->getOutput("gelesenvon");
 
    unique_ptr<CrossProduct> cp(new CrossProduct(move(scanProfessoren),move(scanVorlesungen)));
    unique_ptr<Selection> select(new Selection(move(cp),persnr,gelesenvon));

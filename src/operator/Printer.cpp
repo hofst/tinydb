@@ -4,14 +4,14 @@
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
-Printer::Printer(unique_ptr<Operator>&& input)
-   : input(move(input)),toPrint(this->input->getOutput())
+Printer::Printer(shared_ptr<Operator> input)
+   : input(input),toPrint(this->input->getOutput())
    // Constructor
 {
 }
 //---------------------------------------------------------------------------
-Printer::Printer(unique_ptr<Operator>&& input,const vector<const Register*>& toPrint)
-   : input(move(input)),toPrint(toPrint)
+Printer::Printer(shared_ptr<Operator> input,vector<shared_ptr<Register>> toPrint)
+   : input(input),toPrint(toPrint)
    // Constructor
 {
   if (toPrint.size() == 0) {
@@ -55,13 +55,13 @@ void Printer::close()
    input->close();
 }
 //---------------------------------------------------------------------------
-vector<const Register*> Printer::getOutput() const
+vector<shared_ptr<Register>> Printer::getOutput() const
    // Get all produced values
 {
    return input->getOutput();
 }
 //---------------------------------------------------------------------------
-const Register* Printer::getOutput(const std::string& name) const
+shared_ptr<Register> Printer::getOutput(const std::string& name) const
    // Get one produced value
 {
    return input->getOutput(name);

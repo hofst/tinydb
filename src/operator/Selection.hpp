@@ -9,15 +9,15 @@ class Selection : public Operator
 {
    public:
    /// The input
-   std::unique_ptr<Operator> input;
+   shared_ptr<Operator> input;
    /// Registers of the condition
-   const Register* condition;
+   shared_ptr<Register> condition;
    /// Second register for implicit equal tests
-   const Register* equal;
+   shared_ptr<Register> equal;
    /// Constructor. Condition must be a bool value
-   Selection(std::unique_ptr<Operator>&& input,const Register* condition);
+   Selection(shared_ptr<Operator> input, shared_ptr<Register> condition);
    /// Constructor. Registers a and b are compared
-   Selection(std::unique_ptr<Operator>&& input,const Register* a,const Register* b);
+   Selection(shared_ptr<Operator>, shared_ptr<Register> a, shared_ptr<Register> b);
    /// Destructor
    ~Selection();
 
@@ -29,9 +29,9 @@ class Selection : public Operator
    void close();
 
    /// Get all produced values
-   std::vector<const Register*> getOutput() const;
+   vector<shared_ptr<Register>> getOutput() const;
    /// Get one produced value
-   const Register* getOutput(const std::string& name) const;
+   shared_ptr<Register> getOutput(const string& name) const;
 };
 //---------------------------------------------------------------------------
 #endif

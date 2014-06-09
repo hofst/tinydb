@@ -92,4 +92,16 @@ bin/operator/Operator.o: src/operator/Operator.cpp \
  /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
  /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
- /usr/include/c++/4.9/bits/basic_string.tcc
+ /usr/include/c++/4.9/bits/basic_string.tcc /usr/include/c++/4.9/memory \
+ /usr/include/c++/4.9/bits/stl_tempbuf.h \
+ /usr/include/c++/4.9/bits/stl_raw_storage_iter.h \
+ /usr/include/c++/4.9/typeinfo /usr/include/c++/4.9/ext/concurrence.h \
+ /usr/include/c++/4.9/bits/uses_allocator.h \
+ /usr/include/c++/4.9/functional /usr/include/c++/4.9/tuple \
+ /usr/include/c++/4.9/utility /usr/include/c++/4.9/bits/stl_relops.h \
+ /usr/include/c++/4.9/array /usr/include/c++/4.9/stdexcept \
+ /usr/include/c++/4.9/bits/unique_ptr.h \
+ /usr/include/c++/4.9/bits/shared_ptr.h \
+ /usr/include/c++/4.9/bits/shared_ptr_base.h \
+ /usr/include/c++/4.9/ext/aligned_buffer.h \
+ /usr/include/c++/4.9/backward/auto_ptr.h

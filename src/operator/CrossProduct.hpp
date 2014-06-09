@@ -12,11 +12,11 @@ class CrossProduct : public Operator
 
    public:
    /// The input
-   std::unique_ptr<Operator> left,right;
+   shared_ptr<Operator> left,right;
    /// Read the left side?
    bool readLeft;
    /// Constructor
-   CrossProduct(std::unique_ptr<Operator>&& left,std::unique_ptr<Operator>&& right);
+   CrossProduct(shared_ptr<Operator> left,shared_ptr<Operator> right);
    /// Destructor
    ~CrossProduct();
 
@@ -28,9 +28,9 @@ class CrossProduct : public Operator
    void close();
 
    /// Get all produced values
-   std::vector<const Register*> getOutput() const;
+   vector<std::shared_ptr<Register>> getOutput() const;
    /// Get one produced value
-   const Register* getOutput(const std::string& name) const;
+   shared_ptr<Register> getOutput(const string& name) const;
 };
 //---------------------------------------------------------------------------
 #endif

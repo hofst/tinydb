@@ -18,19 +18,19 @@ class Indexscan : public Operator
    /// The iterator over the index
    std::map<Register,unsigned>::const_iterator iter,iterLimit;
    /// The bounds
-   const Register* lowerBound,*upperBound;
+   shared_ptr<Register> lowerBound, upperBound;
    /// Buffer pointers
    unsigned bufferStart,bufferStop;
    /// Construction helper
-   std::string buf;
+   string buf;
    /// The output
-   std::vector<Register> output;
+   vector<shared_ptr<Register>> output;
    /// A small buffer
    char buffer[bufferSize];
 
    public:
    /// Constructor
-   Indexscan(Table& scale,unsigned indexAttribute,const Register* lowerBounds,const Register* upperBounds);
+   Indexscan(Table& scale,unsigned indexAttribute, shared_ptr<Register> lowerBounds, shared_ptr<Register> upperBounds);
    /// Destructor
    ~Indexscan();
 
@@ -42,9 +42,9 @@ class Indexscan : public Operator
    void close();
 
    /// Get all produced values
-   std::vector<const Register*> getOutput() const;
+   vector<std::shared_ptr<Register>> getOutput() const;
    /// Get one produced value
-   const Register* getOutput(const std::string& name) const;
+   shared_ptr<Register> getOutput(const string& name) const;
 };
 //---------------------------------------------------------------------------
 #endif

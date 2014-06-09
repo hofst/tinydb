@@ -12,10 +12,10 @@ int main()
    Table& studenten=db.getTable("studenten");
 
    unique_ptr<Tablescan> scan(new Tablescan(studenten));
-   const Register* name=scan->getOutput("name");
-   const Register* semester=scan->getOutput("semester");
-   Register two; two.setInt(2);
-   Selection select(move(scan),semester,&two);
+   shared_ptr<Register> name=scan->getOutput("name");
+   shared_ptr<Register> semester=scan->getOutput("semester");
+   shared_ptr<Register> two (new Register); two->setInt(2);
+   Selection select(move(scan),semester,two);
 
    select.open();
    while (select.next())

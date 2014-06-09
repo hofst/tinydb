@@ -240,7 +240,7 @@ void Table::runStats()
 
    // Perform the scan
    Tablescan scan(*this);
-   vector<const Register*> output=scan.getOutput();
+   auto output=scan.getOutput();
    scan.open();
    while (scan.next())
       for (unsigned index=0,limit=stats.size();index<limit;++index)

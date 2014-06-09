@@ -4,8 +4,8 @@
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
-Distinct::Distinct(unique_ptr<Operator>&& input,const vector<const Register*>& output)
-   : input(move(input)),output(output)
+Distinct::Distinct(shared_ptr<Operator> input, vector<shared_ptr<Register>> output)
+   : input(input),output(output)
    // Constructor
 {
 }
@@ -24,7 +24,7 @@ void Distinct::open()
 bool Distinct::next()
    // Get the next tuple
 {
-  bool n ;
+  bool n;
   while ((n = input->next()) && known_values.find(output[0]->getString()) != known_values.end());
   if (n)
     known_values.insert(output[0]->getString());
@@ -37,13 +37,13 @@ void Distinct::close()
    input->close();
 }
 //---------------------------------------------------------------------------
-vector<const Register*> Distinct::getOutput() const
+vector<shared_ptr<Register>> Distinct::getOutput() const
    // Get all produced values
 {
    return output;
 }
 //---------------------------------------------------------------------------
-const Register* Distinct::getOutput(const std::string& name) const
+shared_ptr<Register> Distinct::getOutput(const std::string& name) const
    // Get one produced value
 {
    return input->getOutput(name);

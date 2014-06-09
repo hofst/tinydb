@@ -26,17 +26,17 @@ class Chi : public Operator
 
    private:
    /// The input
-   std::unique_ptr<Operator> input;
+   shared_ptr<Operator> input;
    /// The operation
    Operation op;
    /// The input of the operation
-   const Register* left,*right;
+   shared_ptr<Register> left,right;
    /// The output of the operation
-   Register output;
+   shared_ptr<Register> output;
 
    public:
    /// Constructor. Sample usage: new Chi(move(input),Chi::Add,reg1,reg2);
-   Chi(std::unique_ptr<Operator>&& input,Operation op,const Register* left,const Register* right);
+   Chi(shared_ptr<Operator> input,Operation op,shared_ptr<Register> left,shared_ptr<Register> right);
    /// Destructor
    ~Chi();
 
@@ -48,11 +48,11 @@ class Chi : public Operator
    void close();
 
    /// Get the produced value
-   const Register* getResult() const { return &output; }
+   shared_ptr<Register> getResult() const { return output; }
    /// Get all produced values
-   std::vector<const Register*> getOutput() const;
+   vector<std::shared_ptr<Register>> getOutput() const;
    /// Get one produced value
-   const Register* getOutput(const std::string& name) const;
+   shared_ptr<Register> getOutput(const string& name) const;
 };
 //---------------------------------------------------------------------------
 #endif

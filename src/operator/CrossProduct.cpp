@@ -2,8 +2,8 @@
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
-CrossProduct::CrossProduct(unique_ptr<Operator>&& left,unique_ptr<Operator>&& right)
-   : left(move(left)),right(move(right)),readLeft(true)
+CrossProduct::CrossProduct(shared_ptr<Operator> left,shared_ptr<Operator> right)
+   : left(left),right(right),readLeft(true)
    // Constructor
 {
 }
@@ -54,16 +54,16 @@ void CrossProduct::close()
    left->close();
 }
 //---------------------------------------------------------------------------
-vector<const Register*> CrossProduct::getOutput() const
+vector<shared_ptr<Register>> CrossProduct::getOutput() const
    // Get all produced values
 {
-   vector<const Register*> result=left->getOutput(),other=right->getOutput();
+   auto result=left->getOutput(),other=right->getOutput();
    for (auto iter=other.begin(),limit=other.end();iter!=limit;++iter)
       result.push_back(*iter);
    return result;
 }
 //---------------------------------------------------------------------------
-const Register* CrossProduct::getOutput(const std::string& name) const
+shared_ptr<Register> CrossProduct::getOutput(const std::string& name) const
    // Get one produced value
 {
   if (left->getOutput(name)) return left->getOutput(name);

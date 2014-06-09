@@ -9,6 +9,7 @@ Tablescan::Tablescan(Table& table)
    // Constructor
 {
    output.resize(table.getAttributeCount());
+   for (unsigned i=0; i<table.getAttributeCount(); i++) output[i] = shared_ptr<Register>(new Register());
 }
 //---------------------------------------------------------------------------
 Tablescan::~Tablescan()
@@ -41,12 +42,12 @@ bool Tablescan::next()
          if (escape) { escape=false; buf+=c; continue; }
          if (c=='\r') continue;
          if ((c==';')||(c=='\n')) {
-            Register& r=output[index];
+            auto r=output[index];
             switch (table.attributes[index].getType()) {
-               case Attribute::Type::Int: r.setInt(atoi(buf.c_str())); break;
-               case Attribute::Type::Double: r.setDouble(atof(buf.c_str())); break;
-               case Attribute::Type::Bool: r.setBool(buf=="true"); break;
-               case Attribute::Type::String: r.setString(buf); break;
+               case Attribute::Type::Int: r->setInt(atoi(buf.c_str())); break;
+               case Attribute::Type::Double: r->setDouble(atof(buf.c_str())); break;
+               case Attribute::Type::Bool: r->setBool(buf=="true"); break;
+               case Attribute::Type::String: r->setString(buf); break;
             }
             break;
          } else if (c=='\\') {
@@ -63,20 +64,20 @@ void Tablescan::close()
 {
 }
 //---------------------------------------------------------------------------
-vector<const Register*> Tablescan::getOutput() const
+vector<shared_ptr<Register>> Tablescan::getOutput() const
    // Get all produced values
 {
-   vector<const Register*> result;
+   vector<shared_ptr<Register>> result;
    for (auto iter=output.begin(),limit=output.end();iter!=limit;++iter)
-      result.push_back(&(*iter));
+      result.push_back(*iter);
    return result;
 }
 //---------------------------------------------------------------------------
-const Register* Tablescan::getOutput(const std::string& name) const
+shared_ptr<Register> Tablescan::getOutput(const std::string& name) const
    // Get one produced value
 {
    int slot=table.findAttribute(name);
    if (slot<0) return 0;
-   return &output[slot];
+   return output[slot];
 }
 //---------------------------------------------------------------------------

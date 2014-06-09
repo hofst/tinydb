@@ -10,14 +10,14 @@ class Distinct : public Operator
 {
    private:
    /// The input
-   std::unique_ptr<Operator> input;
+   shared_ptr<Operator> input;
    /// The output
-   std::vector<const Register*> output;
-   std::unordered_set<std::string> known_values;
+   vector<shared_ptr<Register>> output;
+   unordered_set<string> known_values;
 
    public:
    /// Constructor
-   Distinct(std::unique_ptr<Operator>&& input,const std::vector<const Register*>& output);
+   Distinct(shared_ptr<Operator> input, std::vector<shared_ptr<Register>> output);
    /// Destructor
    ~Distinct();
 
@@ -29,9 +29,9 @@ class Distinct : public Operator
    void close();
 
    /// Get all produced values
-   std::vector<const Register*> getOutput() const;
+   vector<std::shared_ptr<Register>> getOutput() const;
    /// Get one produced value
-   const Register* getOutput(const std::string& name) const;
+   shared_ptr<Register> getOutput(const string& name) const;
 };
 //---------------------------------------------------------------------------
 #endif

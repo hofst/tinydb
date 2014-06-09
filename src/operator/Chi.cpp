@@ -70,8 +70,8 @@ void Chi::LessOrEqual(const Register& a,const Register& b,Register& result)
    } else result.setUnbound();
 }
 //---------------------------------------------------------------------------
-Chi::Chi(unique_ptr<Operator>&& input,Operation op,const Register* left,const Register* right)
-   : input(move(input)),op(op),left(left),right(right)
+Chi::Chi(shared_ptr<Operator> input,Operation op,shared_ptr<Register> left,shared_ptr<Register> right)
+   : input(input),op(op),left(left),right(right), output(new Register())
    // Constructor
 {
 }
@@ -95,7 +95,7 @@ bool Chi::next()
       return false;
 
    // Calculate the value
-   op(*left,*right,output);
+   op(*left,*right,*output);
 
    return true;
 }
@@ -106,15 +106,15 @@ void Chi::close()
    input->close();
 }
 //---------------------------------------------------------------------------
-vector<const Register*> Chi::getOutput() const
+vector<shared_ptr<Register>> Chi::getOutput() const
    // Get all produced values
 {
-   vector<const Register*> result=input->getOutput();
-   result.push_back(&output);
+   auto result=input->getOutput();
+   result.push_back(output);
    return result;
 }
 //---------------------------------------------------------------------------
-const Register* Chi::getOutput(const std::string& name) const
+shared_ptr<Register> Chi::getOutput(const std::string& name) const
    // Get one produced value
 {
    return input->getOutput(name);

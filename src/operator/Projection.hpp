@@ -9,13 +9,13 @@ class Projection : public Operator
 {
    private:
    /// The input
-   std::unique_ptr<Operator> input;
+   shared_ptr<Operator> input;
    /// The output
-   std::vector<const Register*> output;
+   vector<shared_ptr<Register>> output;
 
    public:
    /// Constructor
-   Projection(std::unique_ptr<Operator>&& input,const std::vector<const Register*>& output);
+   Projection(shared_ptr<Operator> input, vector<shared_ptr<Register>> output);
    /// Destructor
    ~Projection();
 
@@ -27,9 +27,9 @@ class Projection : public Operator
    void close();
 
    /// Get all produced values
-   std::vector<const Register*> getOutput() const;
+   vector<shared_ptr<Register>> getOutput() const;
    /// Get one produced value
-   const Register* getOutput(const std::string& name) const;
+   shared_ptr<Register> getOutput(const string& name) const;
 };
 //---------------------------------------------------------------------------
 #endif

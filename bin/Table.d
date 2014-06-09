@@ -119,7 +119,14 @@ bin/Table.o: src/Table.cpp /usr/include/stdc-predef.h src/Table.hpp \
  /usr/include/c++/4.9/bits/stl_vector.h \
  /usr/include/c++/4.9/bits/stl_bvector.h \
  /usr/include/c++/4.9/bits/vector.tcc src/operator/Tablescan.hpp \
- src/operator/Operator.hpp /usr/include/c++/4.9/set \
+ src/operator/Operator.hpp /usr/include/c++/4.9/memory \
+ /usr/include/c++/4.9/bits/stl_tempbuf.h \
+ /usr/include/c++/4.9/bits/stl_raw_storage_iter.h \
+ /usr/include/c++/4.9/typeinfo /usr/include/c++/4.9/ext/concurrence.h \
+ /usr/include/c++/4.9/functional /usr/include/c++/4.9/bits/unique_ptr.h \
+ /usr/include/c++/4.9/bits/shared_ptr.h \
+ /usr/include/c++/4.9/bits/shared_ptr_base.h \
+ /usr/include/c++/4.9/backward/auto_ptr.h /usr/include/c++/4.9/set \
  /usr/include/c++/4.9/bits/stl_set.h \
  /usr/include/c++/4.9/bits/stl_multiset.h /usr/include/c++/4.9/sstream \
  /usr/include/c++/4.9/bits/sstream.tcc

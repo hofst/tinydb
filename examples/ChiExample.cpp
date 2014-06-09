@@ -17,20 +17,20 @@ int main()
    db.open("data/uni");
    Table& studenten=db.getTable("studenten");
 
-   unique_ptr<Tablescan> scan(new Tablescan(studenten));
-   const Register* semester=scan->getOutput("semester");
-   const Register* name=scan->getOutput("name");
+   shared_ptr<Tablescan> scan(new Tablescan(studenten));
+   shared_ptr<Register> semester=scan->getOutput("semester");
+   shared_ptr<Register> name=scan->getOutput("name");
 
    // find all students where semester num. is not 2
-   Register two; two.setInt(2);
-   unique_ptr<Chi> chi(new Chi(move(scan),Chi::NotEqual,semester,&two));
+   shared_ptr<Register> two (new Register); two->setInt(2);
+   shared_ptr<Chi> chi(new Chi(scan,Chi::NotEqual,semester,two));
    
-   const Register* chiResult=chi->getResult();
+   shared_ptr<Register> chiResult=chi->getResult();
 
-   unique_ptr<Selection> select(new Selection(move(chi),chiResult));
-   unique_ptr<Projection> project(new Projection(move(select),{name}));
+   shared_ptr<Selection> select(new Selection(chi,chiResult));
+   shared_ptr<Projection> project(new Projection(select,{name}));
 
-   Printer out(move(project));
+   Printer out(project);
 
    out.open();
    while (out.next());

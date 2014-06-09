@@ -11,7 +11,7 @@ int main()
    Table& studenten=db.getTable("studenten");
 
    Tablescan scan(studenten);
-   const Register* name=scan.getOutput("name");
+   shared_ptr<Register> name=scan.getOutput("name");
 
    scan.open();
    while (scan.next())

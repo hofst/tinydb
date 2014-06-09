@@ -3,14 +3,14 @@
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
-Selection::Selection(unique_ptr<Operator>&& input,const Register* condition)
-   : input(move(input)),condition(condition),equal(0)
+Selection::Selection(shared_ptr<Operator> input,shared_ptr<Register> condition)
+   : input(input),condition(condition)
    // Constructor
 {
 }
 //---------------------------------------------------------------------------
-Selection::Selection(unique_ptr<Operator>&& input,const Register* a,const Register* b)
-   : input(move(input)),condition(a),equal(b)
+Selection::Selection(shared_ptr<Operator> input,shared_ptr<Register> a,shared_ptr<Register> b)
+   : input(input),condition(a),equal(b)
    // Constructor
 {
 }
@@ -55,13 +55,13 @@ void Selection::close()
    input->close();
 }
 //---------------------------------------------------------------------------
-vector<const Register*> Selection::getOutput() const
+vector<shared_ptr<Register>> Selection::getOutput() const
    // Get all produced values
 {
    return input->getOutput();
 }
 //---------------------------------------------------------------------------
-const Register* Selection::getOutput(const std::string& name) const
+shared_ptr<Register> Selection::getOutput(const std::string& name) const
    // Get one produced value
 {
    return input->getOutput(name);

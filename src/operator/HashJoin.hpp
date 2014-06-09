@@ -11,9 +11,9 @@ class HashJoin : public Operator
 {
    private:
    /// The registers
-   const Register* leftValue,*rightValue;
+   shared_ptr<Register> leftValue, rightValue;
    /// The copy mechanism
-   std::vector<Register*> leftRegs;
+   std::vector<shared_ptr<Register>> leftRegs;
    /// The hashtable
    std::unordered_multimap<Register,std::vector<Register>,Register::hash> table;
    /// Iterator
@@ -21,9 +21,9 @@ class HashJoin : public Operator
 
    public:
    /// The input
-   std::unique_ptr<Operator> left,right;
+   shared_ptr<Operator> left,right;
    /// Constructor
-   HashJoin(std::unique_ptr<Operator>&& left,std::unique_ptr<Operator>&& right,const Register* leftValue,const Register* rightValue);
+   HashJoin(shared_ptr<Operator> left, shared_ptr<Operator> right, shared_ptr<Register> leftValue, shared_ptr<Register> rightValue);
    /// Destructor
    ~HashJoin();
 
@@ -35,9 +35,9 @@ class HashJoin : public Operator
    void close();
 
    /// Get all produced values
-   std::vector<const Register*> getOutput() const;
+   vector<std::shared_ptr<Register>> getOutput() const;
    /// Get one produced value
-   const Register* getOutput(const std::string& name) const;
+   shared_ptr<Register> getOutput(const string& name) const;
 };
 //---------------------------------------------------------------------------
 #endif

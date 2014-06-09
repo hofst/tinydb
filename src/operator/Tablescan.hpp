@@ -20,9 +20,9 @@ class Tablescan : public Operator
    /// The current position
    unsigned filePos;
    /// Construction helper
-   std::string buf;
+   string buf;
    /// The output
-   std::vector<Register> output;
+   vector<shared_ptr<Register>> output;
    /// A small buffer
    char buffer[bufferSize];
 
@@ -42,9 +42,9 @@ class Tablescan : public Operator
    /// Get the table
    Table& getTable() { return table; }
    /// Get all produced values
-   std::vector<const Register*> getOutput() const;
+   vector<shared_ptr<Register>> getOutput() const;
    /// Get one produced value
-   const Register* getOutput(const std::string& name) const;
+   shared_ptr<Register> getOutput(const string& name) const;
 };
 //---------------------------------------------------------------------------
 #endif

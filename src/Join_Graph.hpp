@@ -46,7 +46,7 @@ struct Join_Graph_Node {
     auto table = get_table();
     
     // Apply Projections
-    vector<const Register*> selected_registers;
+    vector<shared_ptr<Register>> selected_registers;
     for (auto attr : parser_result->selected_attributes) {
 	selected_registers.push_back(table->getOutput(parser_result->alias_to_relation[attr.alias]));
     }
@@ -120,7 +120,7 @@ struct CSELECT:SELECT {
   unique_ptr<Operator> get_table() {
       auto child_table = child->get_table();
       auto reg1 = child_table->getOutput(parser_result->alias_to_relation[binding.attr.alias]);
-      auto reg2 = new Register(binding.constant);
+      auto reg2 = shared_ptr<Register> (new Register(binding.constant));
     
       unique_ptr<Chi> filter(new Chi(
 	move(child_table),
@@ -128,7 +128,7 @@ struct CSELECT:SELECT {
 	reg1,
 	reg2));
       
-      const Register* filtered_register=filter->getResult();
+      shared_ptr<Register> filtered_register=filter->getResult();
       return unique_ptr<Operator> (new Selection(move(filter),filtered_register));  
   }
 };

@@ -3,6 +3,8 @@
 //---------------------------------------------------------------------------
 #include <vector>
 #include <string>
+#include <memory>
+using namespace std;
 //---------------------------------------------------------------------------
 class Register;
 //---------------------------------------------------------------------------
@@ -27,9 +29,9 @@ class Operator
    int size(int threshold=-1);
 
    /// Get all produced values
-   virtual std::vector<const Register*> getOutput() const = 0;
+   virtual vector<shared_ptr<Register>> getOutput() const = 0;
    /// Get one produced value
-   virtual const Register* getOutput(const std::string& name) const = 0;
+   virtual shared_ptr<Register> getOutput(const string& name) const = 0;
 };
 //---------------------------------------------------------------------------
 #endif
