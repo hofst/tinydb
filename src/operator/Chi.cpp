@@ -114,9 +114,3 @@ vector<shared_ptr<Register>> Chi::getOutput() const
    return result;
 }
 //---------------------------------------------------------------------------
-shared_ptr<Register> Chi::getOutput(const std::string& name) const
-   // Get one produced value
-{
-   return input->getOutput(name);
-}
-//---------------------------------------------------------------------------

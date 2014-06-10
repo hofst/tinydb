@@ -10,9 +10,12 @@ bin/joinexample$(EXEEXT): bin/examples/JoinExample.o $(obj)
 bin/chiexample$(EXEEXT): bin/examples/ChiExample.o $(obj)
 	$(BUILDEXE)
 	
+bin/hashjoinexample$(EXEEXT): bin/examples/HashjoinExample.o $(obj)
+	$(BUILDEXE)
+	
 bin/exercise08$(EXEEXT): bin/examples/exercise08.o $(obj)
 	$(BUILDEXE)
 
 
 # Alias for all examples
-examples_bin: bin/scanexample$(EXEEXT) bin/selectexample$(EXEEXT) bin/joinexample$(EXEEXT) bin/chiexample$(EXEEXT) bin/exercise08$(EXEEXT)
+examples_bin: bin/scanexample$(EXEEXT) bin/selectexample$(EXEEXT) bin/joinexample$(EXEEXT) bin/chiexample$(EXEEXT) bin/hashjoinexample$(EXEEXT) bin/exercise08$(EXEEXT)

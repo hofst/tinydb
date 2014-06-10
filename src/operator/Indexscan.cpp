@@ -95,9 +95,3 @@ vector<shared_ptr<Register>> Indexscan::getOutput() const
    return result;
 }
 //---------------------------------------------------------------------------
-shared_ptr<Register> Indexscan::getOutput(const std::string& name) const
-   // Get one produced value
-{
-   return getOutput()[0];
-}
-//---------------------------------------------------------------------------

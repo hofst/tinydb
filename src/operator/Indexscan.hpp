@@ -43,8 +43,6 @@ class Indexscan : public Operator
 
    /// Get all produced values
    vector<std::shared_ptr<Register>> getOutput() const;
-   /// Get one produced value
-   shared_ptr<Register> getOutput(const string& name) const;
 };
 //---------------------------------------------------------------------------
 #endif

@@ -51,8 +51,6 @@ class Chi : public Operator
    shared_ptr<Register> getResult() const { return output; }
    /// Get all produced values
    vector<std::shared_ptr<Register>> getOutput() const;
-   /// Get one produced value
-   shared_ptr<Register> getOutput(const string& name) const;
 };
 //---------------------------------------------------------------------------
 #endif

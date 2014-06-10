@@ -26,7 +26,7 @@ struct Query_Plan {
   shared_ptr<Database> db;
   map<string, shared_ptr<Join_Graph_Node>> join_graph_leaves;
     
-  Query_Plan(shared_ptr<Parser_Result> parser_result) : parser_result(parser_result), db(unique_ptr<Database>(new Database)) {
+  Query_Plan(shared_ptr<Parser_Result> parser_result) : parser_result(parser_result), db(shared_ptr<Database>(new Database)) {
     db->open(parser_result->db);
     
     init_join_graph_leaves();
@@ -105,36 +105,44 @@ struct Query_Plan {
       return B[set_representation(R)];
   }
   
-  /*
   shared_ptr<Join_Graph_Node> goo() {
     cout << endl << "***** Creating GOO Query Plan with Crossproducts *****" << endl;  
-       
+    
+    set<shared_ptr<Join_Graph_Node>> join_graph_roots;
+    for (auto n : join_graph_leaves) join_graph_roots.insert(n.second);
+    
     while (join_graph_roots.size() > 1) {
-      pair<shared_ptr<Join_Graph_Node>, shared_ptr<Join_Graph_Node>> best_pair;
+      shared_ptr<Join_Graph_Node> best, best_child, best_child2;
       int best_size = -1;
       
       auto node_pairs = all_pairs_in_set<shared_ptr<Join_Graph_Node>>(join_graph_roots);
       for (auto node_pair : node_pairs) {
+	shared_ptr<Join_Graph_Node> n = join(node_pair.first, node_pair.second);
 	if (best_size==-1 && node_pairs.size() == 1) {
 	  // Pair can be choosen immediately
-	  best_pair = node_pair;
+	  best_child = node_pair.first;
+	  best_child2 = node_pair.second;
+	  best = n;
 	  break;
 	}
 	
-	int join_test_size = join_test(node_pair.first, node_pair.second, best_size);
-	cout << "GOO Join Tested : " << node_pair.first->aliases_str() << " x " << node_pair.second->aliases_str() << " with size " << join_test_size << endl;
-	if (best_size==-1 || best_size > join_test_size) {
-	  best_pair = node_pair;
-	  best_size = join_test_size;
+	int n_size = n->get_size(best_size);
+	cout << "GOO Join Tested : " << node_pair.first->aliases_str() << " x " << node_pair.second->aliases_str() << " with size " << n_size << endl;
+	if (best_size==-1 || best_size > n_size) {
+	  best_child = node_pair.first;
+	  best_child2 = node_pair.second;
+	  best = n;
+	  best_size = n_size;
 	}
       }
-      cout << ">>> Winner is : " << best_pair.first->aliases_str() << " x " << best_pair.second->aliases_str() << " with size " << best_size << endl;
-      join(best_pair.first, best_pair.second);
+      cout << ">>> Winner is : " << best_child->aliases_str() << " x " << best_child2->aliases_str() << " with size " << best_size << endl;
+      join_graph_roots.insert(best);
+      join_graph_roots.erase(best_child);
+      join_graph_roots.erase(best_child2);
     }
     
-    result = move(get_join_graph()->table);
+    return *join_graph_roots.begin();
   }
-  */
   
   shared_ptr<Join_Graph_Node> canonical_optimized() {
     cout << endl << "***** Creating Logically Optimized Canonical Query Plan *****" << endl;

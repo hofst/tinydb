@@ -61,9 +61,3 @@ vector<shared_ptr<Register>> Printer::getOutput() const
    return input->getOutput();
 }
 //---------------------------------------------------------------------------
-shared_ptr<Register> Printer::getOutput(const std::string& name) const
-   // Get one produced value
-{
-   return input->getOutput(name);
-}
-//---------------------------------------------------------------------------

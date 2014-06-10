@@ -16,20 +16,18 @@ using namespace std;
 struct Join_Graph_Node {
   shared_ptr<Parser_Result> parser_result;
   shared_ptr<Database> db;
-  
-  int s;  // cached size
-  
+   
   Join_Graph_Node(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db)
-  : parser_result(parser_result), db(db), s(-1) {};
+  : parser_result(parser_result), db(db) {};
     
   void print(int depth=0) {
     if (depth == 0) cout << endl << "***** Printing Join Graph *****" << endl;
     
     for (int i=0; i < depth; i++) cout << "\t";
     
-    cout << type_str() << ": " << set_representation(aliases()) << " (size:" << get_size() << ")" << "   [" << this << "]" << endl;
+    cout << type_str() << ": " << set_representation(aliases()) << " (size:" << get_size() << ")" << endl;
     
-    print_rec();
+    print_rec(depth);
   }
   
   bool operator<(const Join_Graph_Node& n2) const {
@@ -48,9 +46,9 @@ struct Join_Graph_Node {
     // Apply Projections
     vector<shared_ptr<Register>> selected_registers;
     for (auto attr : parser_result->selected_attributes) {
-	selected_registers.push_back(table->getOutput(parser_result->alias_to_relation[attr.alias]));
+	selected_registers.push_back(get_register(attr));
     }
-    Printer out (move(table), selected_registers);
+    Printer out (table, selected_registers);
 
     // Print Result
     out.open();
@@ -58,10 +56,9 @@ struct Join_Graph_Node {
     out.close();
   }
   
-  int get_size() {
-    if (s == -1) s = get_table()->size();
-    return s;
-  }
+  virtual int get_size(int treshold=-1) = 0;
+  
+  virtual shared_ptr<Register> get_register(Attr attr) = 0;
   
   virtual set<string> aliases() = 0;
   
@@ -71,16 +68,30 @@ struct Join_Graph_Node {
   
   virtual string type_str() = 0;
   
-  virtual unique_ptr<Operator> get_table() = 0;
+  virtual shared_ptr<Operator> get_table() = 0;
 };
 
 struct LEAF:Join_Graph_Node {
+  shared_ptr<Tablescan> table;
   string alias;
   
   LEAF(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db, string alias) : Join_Graph_Node(parser_result, db), alias(alias) {}
   
-  unique_ptr<Operator> get_table() {
-    return unique_ptr<Operator> (new Tablescan(db->getTable(parser_result->alias_to_relation[alias])));
+  shared_ptr<Operator> get_table() {
+    if (!table) table = shared_ptr<Tablescan> (new Tablescan(db->getTable(parser_result->alias_to_relation[alias])));
+    return table;
+  }
+  
+  shared_ptr<Register> get_register(Attr attr) {
+    get_table();
+    assertion(table->getTable().findAttribute(attr.name) != -1, "Attribute not found");
+    return table->getOutput(attr.name);
+  }
+  
+  int get_size(int threshold=-1) {
+   (void) threshold;
+   get_table();
+   return table->getTable().getCardinality(); 
   }
   
   set<string> aliases() {
@@ -95,9 +106,18 @@ struct LEAF:Join_Graph_Node {
 };
 
 struct SELECT:Join_Graph_Node {
+  shared_ptr<Selection> table;
   shared_ptr<Join_Graph_Node> child;
   
   SELECT(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db, shared_ptr<Join_Graph_Node> child) : Join_Graph_Node(parser_result, db), child(child) {}
+  
+  shared_ptr<Register> get_register(Attr attr) {
+      return child->get_register(attr);
+  }
+  
+  int get_size(int threshold=-1) {
+    return get_table()->size(threshold);
+  }
   
   set<string> aliases() {
       return child->aliases();
@@ -117,19 +137,22 @@ struct CSELECT:SELECT {
   
   CSELECT(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db, shared_ptr<Join_Graph_Node> child, Constant_Binding binding) : SELECT(parser_result, db, child), binding(binding) {}
   
-  unique_ptr<Operator> get_table() {
-      auto child_table = child->get_table();
-      auto reg1 = child_table->getOutput(parser_result->alias_to_relation[binding.attr.alias]);
-      auto reg2 = shared_ptr<Register> (new Register(binding.constant));
-    
-      unique_ptr<Chi> filter(new Chi(
-	move(child_table),
-	Chi::Equal,
-	reg1,
-	reg2));
+  shared_ptr<Operator> get_table() {
+      if (!table) {
+	auto child_table = child->get_table();
+	auto reg1 = get_register(binding.attr);
+	auto reg2 = shared_ptr<Register> (new Register(binding.constant));
       
-      shared_ptr<Register> filtered_register=filter->getResult();
-      return unique_ptr<Operator> (new Selection(move(filter),filtered_register));  
+	shared_ptr<Chi> filter(new Chi(
+	  child_table,
+	  Chi::Equal,
+	  reg1,
+	  reg2));
+	
+	shared_ptr<Register> filtered_register=filter->getResult();
+	table = shared_ptr<Selection> (new Selection(filter,filtered_register));
+      }
+      return table;
   }
 };
 
@@ -138,22 +161,33 @@ struct ASELECT:SELECT {
   
   ASELECT(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db, shared_ptr<Join_Graph_Node> child, Attr_Binding binding) : SELECT(parser_result, db, child), binding(binding) {}
   
-  unique_ptr<Operator> get_table() {
+  shared_ptr<Operator> get_table() {
+    if (!table) {
       auto child_table = child->get_table();
-      auto reg1 = child_table->getOutput(parser_result->alias_to_relation[binding.attr1.alias]);
-      auto reg2 = child_table->getOutput(parser_result->alias_to_relation[binding.attr2.alias]);
-      return unique_ptr<Operator> (new Selection(move(child_table), reg1, reg2));
+      auto reg1 = get_register(binding.attr1);
+      auto reg2 = get_register(binding.attr2);
+      table = shared_ptr<Selection> (new Selection(child_table, reg1, reg2));
+    }
+    return table;
   }
 };
 
 struct CROSSPRODUCT:Join_Graph_Node {
+  shared_ptr<CrossProduct> table;
   shared_ptr<Join_Graph_Node> child;
   shared_ptr<Join_Graph_Node> child2;
   
   CROSSPRODUCT(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db, shared_ptr<Join_Graph_Node> child, shared_ptr<Join_Graph_Node> child2) : Join_Graph_Node(parser_result, db), child(child), child2(child2) {}
   
-  unique_ptr<Operator> get_table() {
-    return unique_ptr<Operator>(new CrossProduct(move(child->get_table()), move(child2->get_table())));
+  virtual shared_ptr<Operator> get_table() {
+    if (!table) table = shared_ptr<CrossProduct>(new CrossProduct(child->get_table(), child2->get_table()));
+    return table;
+  }
+  
+  shared_ptr<Register> get_register(Attr attr) {
+      auto aliases1 = child->aliases();
+      if (aliases1.find(attr.alias) != aliases1.end()) return child->get_register(attr);	// register must be in child1
+      return child2->get_register(attr);	// register must be in child2
   }
   
   set<string> aliases() {
@@ -168,9 +202,9 @@ struct CROSSPRODUCT:Join_Graph_Node {
     child2->print(depth+1);
   }
   
-  int get_size() {
-    if (s == -1) s = child->get_size() * child2->get_size();
-    return s;
+  virtual int get_size(int threshold=-1) {
+    (void) threshold;
+    return child->get_size() * child2->get_size();
   }
         
   string representation() {return child->representation() + "x" + child2->representation();}
@@ -179,16 +213,24 @@ struct CROSSPRODUCT:Join_Graph_Node {
 };
 
 struct HASHJOIN:CROSSPRODUCT {
+  shared_ptr<HashJoin> table;
   Attr_Binding binding;
   
   HASHJOIN(shared_ptr<Parser_Result> parser_result, shared_ptr<Database> db, shared_ptr<Join_Graph_Node> child, shared_ptr<Join_Graph_Node> child2, Attr_Binding binding) : CROSSPRODUCT(parser_result, db, child, child2), binding(binding) {}
   
-  unique_ptr<Operator> get_table() {
-    auto child_table1 = child->get_table();
-    auto child_table2 = child->get_table();
-    auto reg1 = child_table1->getOutput(parser_result->alias_to_relation[binding.attr1.alias]);
-    auto reg2 = child_table2->getOutput(parser_result->alias_to_relation[binding.attr2.alias]);
-    return unique_ptr<Operator>(new HashJoin(move(child_table1), move(child_table2), reg1, reg2));
+  shared_ptr<Operator> get_table() {
+    if (!table) {
+      auto child_table1 = child->get_table();
+      auto child_table2 = child2->get_table();
+      auto reg1 = get_register(binding.attr1);
+      auto reg2 = get_register(binding.attr2);;
+      table = shared_ptr<HashJoin>(new HashJoin(child_table1, child_table2, reg1, reg2));
+    }
+    return table;
+  }
+  
+  int get_size(int threshold=-1) {
+    return get_table()->size(threshold);
   }
   
   string representation() {return child->representation() + " |x| " + child2->representation();}

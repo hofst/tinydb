@@ -37,9 +37,3 @@ vector<shared_ptr<Register>> Projection::getOutput() const
    return output;
 }
 //---------------------------------------------------------------------------
-shared_ptr<Register> Projection::getOutput(const std::string& name) const
-   // Get one produced value
-{
-   return input->getOutput(name);
-}
-//---------------------------------------------------------------------------

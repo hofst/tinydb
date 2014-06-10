@@ -30,8 +30,6 @@ class Operator
 
    /// Get all produced values
    virtual vector<shared_ptr<Register>> getOutput() const = 0;
-   /// Get one produced value
-   virtual shared_ptr<Register> getOutput(const string& name) const = 0;
 };
 //---------------------------------------------------------------------------
 #endif

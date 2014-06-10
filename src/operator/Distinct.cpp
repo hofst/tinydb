@@ -43,9 +43,3 @@ vector<shared_ptr<Register>> Distinct::getOutput() const
    return output;
 }
 //---------------------------------------------------------------------------
-shared_ptr<Register> Distinct::getOutput(const std::string& name) const
-   // Get one produced value
-{
-   return input->getOutput(name);
-}
-//---------------------------------------------------------------------------
