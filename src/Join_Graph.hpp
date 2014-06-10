@@ -58,6 +58,8 @@ struct Join_Graph_Node {
   
   virtual int get_size(int treshold=-1) = 0;
   
+  virtual int get_cout() = 0;
+  
   virtual shared_ptr<Register> get_register(Attr attr) = 0;
   
   virtual set<string> aliases() = 0;
@@ -94,6 +96,10 @@ struct LEAF:Join_Graph_Node {
    return table->getTable().getCardinality(); 
   }
   
+  int get_cout() {
+   return 0;
+  }
+  
   set<string> aliases() {
       return {alias};
   }
@@ -119,6 +125,10 @@ struct SELECT:Join_Graph_Node {
     return get_table()->size(threshold);
   }
   
+  int get_cout() {
+   return get_size() + child->get_cout();
+  }
+  
   set<string> aliases() {
       return child->aliases();
   }
@@ -127,7 +137,7 @@ struct SELECT:Join_Graph_Node {
     child->print(depth+1);
   }
   
-  string representation() {return "#(" + child->representation() + ")";}
+  string representation() {return "#" + child->representation();}
   
   string type_str() {return "SELECT";}
 };
@@ -206,8 +216,12 @@ struct CROSSPRODUCT:Join_Graph_Node {
     (void) threshold;
     return child->get_size() * child2->get_size();
   }
+  
+  int get_cout() {
+   return get_size() + child->get_cout() + child2->get_cout();
+  }
         
-  string representation() {return child->representation() + "x" + child2->representation();}
+  string representation() {return "(" + child->representation() + " x " + child2->representation() + ")";}
   
   string type_str() {return "CROSSPRODUCT";}
 };
@@ -233,7 +247,7 @@ struct HASHJOIN:CROSSPRODUCT {
     return get_table()->size(threshold);
   }
   
-  string representation() {return child->representation() + " |x| " + child2->representation();}
+  string representation() {return "(" + child->representation() + " |x| " + child2->representation() + ")";}
   
   string type_str() {return "HASHJOIN";}
 };

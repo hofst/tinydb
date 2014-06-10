@@ -89,7 +89,7 @@ template<typename T>
 set<T> int_to_set(set<T> s, int n) {
   /* return subset that is binary encoded as int */
   set<T> result;
-  for (int i = 0; pow(2,i) < n; i++) {
+  for (int i = 0; i < int(s.size()); i++) {
     if (n & pow(2,i)) {
       result.insert(set_at(s, i));
     }
@@ -100,8 +100,8 @@ set<T> int_to_set(set<T> s, int n) {
 template<typename T>
 set<T> inverse_set(set<T> s, set<T> s1) {
   /* return subset of s when removing s1 */
-  s.erase(s1.begin(), s1.end());
-  return move(s);
+  for (auto e : s1)  s.erase(e);
+  return s;
 }
 
 template<typename T>
@@ -110,7 +110,7 @@ set<pair<set<T>, set<T>>> partitions(set<T> s) {
   set<pair<set<T>, set<T>>> result;
   
   if (s.size() > 1) {	// s must contain at least 2 elements or partition won't be possible
-    for (int i = 0; pow(2,i) < int(s.size()-1); i++) {  // avoid empty and full subsets or partition won't be possible
+    for (int i = 1; i < (pow(2,s.size())-1) / 2; i++) {  // avoid empty and full subsets or partition won't be possible. Also do not consider order of paris (divide by 2 to omit complements)
       auto s1 = int_to_set<T>(s, i);
       auto s2 = inverse_set<T>(s, s1);
       result.insert(pair<set<T>, set<T>>(s1,s2));

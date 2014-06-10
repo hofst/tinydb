@@ -72,8 +72,8 @@ struct Query_Plan {
     return n;
   }
   
-  shared_ptr<Join_Graph_Node> cp_sub() {
-    cout << endl << "***** Creating cp_sub Query Plan *****" << endl; 
+  shared_ptr<Join_Graph_Node> dp_sub() {
+    cout << endl << "***** Creating dp_sub Query Plan *****" << endl; 
       map<string, shared_ptr<Join_Graph_Node>> B;
       auto R = parser_result->aliases;
       
@@ -83,6 +83,7 @@ struct Query_Plan {
       
       for (unsigned i=1; i<pow(2,R.size()); i++) {
 	auto S = int_to_set(parser_result->aliases, i);
+	cout << "Creating DP Table entry for " << set_representation(S) << " [i=" << i << "]" << endl;
 	
 	for (auto p : partitions(S)) {
 	  auto S1 = p.first;
@@ -90,16 +91,13 @@ struct Query_Plan {
 	  auto p1 = B[set_representation(S1)];
 	  auto p2 = B[set_representation(S2)];
 	  auto P = join(p1, p2);
-	  if (B.find(set_representation(S)) == B.end() || B[set_representation(S)]->get_size() > P->get_size()) {
+	  cout << "   Testing " << set_representation(S1) << " x " << set_representation(S2) << "... with cost " << P->get_cout() << endl;
+	  if (B.find(set_representation(S)) == B.end() || B[set_representation(S)]->get_cout() > P->get_cout()) {
 	    B[set_representation(S)] = P;
 	  }
 	}
-      }
-      
-      /* Print B */
-      cout << "DP Table:" << endl; 
-      for (auto b : B) {
-	cout << b.first << b.second->representation() << " [" << b.second->get_size() << "]" << endl;
+	
+	cout << "  Winner is " << B[set_representation(S)]->representation() << " with cost " << B[set_representation(S)]->get_cout() << endl;
       }
       
       return B[set_representation(R)];
