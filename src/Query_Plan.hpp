@@ -12,6 +12,7 @@
 #include "operator/HashJoin.hpp"
 #include <iostream>
 #include <string>
+#include <list>
 #include <regex>
 #include <vector>
 #include <algorithm>
@@ -70,6 +71,48 @@ struct Query_Plan {
     }
     
     return n;
+  }
+  
+  shared_ptr<Join_Graph_Node> quick_pick() {
+    cout << endl << "***** Creating quick_pick Query Plan *****" << endl;
+    
+    srand(time(0));
+    map<string, shared_ptr<Join_Graph_Node>> trees;  // Make it fast: map aliases directly to the root nodes (=tree representations)
+    for (auto a : join_graph_leaves) trees[a.first] = a.second;
+    int joins_todo = trees.size() - 1;
+    set<Attr_Binding> edges;
+    for (auto a : parser_result->attr_bindings) edges.insert(a);
+    
+    while (joins_todo) {
+	auto edge = set_at<Attr_Binding>(edges,rand() % edges.size());
+	if (trees[edge.attr1.alias] != trees[edge.attr2.alias]) {
+	   /* Join */
+	   auto new_tree = join(trees[edge.attr1.alias], trees[edge.attr2.alias]);
+	   joins_todo--;
+	   for (string alias : new_tree->aliases()) trees[alias] = new_tree;	// all joined relations now map to the new compound tree
+	   /* Remove edge */
+	   edges.erase(edge);
+	}   
+    }
+    
+    return trees.begin()->second;
+  }
+  
+  shared_ptr<Join_Graph_Node> quick_pick_multi() {
+    cout << endl << "***** Creating multiple quick_pick Query Plans *****" << endl;
+    auto best_tree = quick_pick();
+    int best_cost = best_tree->get_cout();
+    cout << "created random tree with cout " << best_cost; 
+    for (int i=0; i<3; i++) {
+      auto tmp_tree = quick_pick();
+      int tmp_cost = tmp_tree->get_cout();
+      cout << "created random tree with cout " << tmp_cost; 
+      if (tmp_cost < best_cost) {
+	best_tree = tmp_tree;
+	best_cost = tmp_cost;
+      }
+    }
+    return best_tree;
   }
   
   shared_ptr<Join_Graph_Node> dp_sub() {
